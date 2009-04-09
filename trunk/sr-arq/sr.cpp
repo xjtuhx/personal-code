@@ -8,7 +8,7 @@ static struct buffer *A_buffer_tail = NULL;
 static struct buffer *A_window_tail = NULL;
 static struct buffer *B_buffer_head = NULL;
 
-unsigned int A_pkt_sent = 0;
+volatile int A_pkt_sent = 0;
 
 /* called from layer 5, passed the data to be sent to the other side */
 void A_rdtsend(struct msg message)
@@ -120,6 +120,8 @@ void B_rcv(struct pkt packet)
     static int nRecvd = 0;
     if (CheckSum(packet) != packet.checksum)
         return;
+    if (packet.seqnum < nRecvd)
+        return;
     p = (struct buffer*)malloc(sizeof(struct buffer));
     memcpy(p->packet.payload, packet.payload, 20);
     p->packet.seqnum = packet.seqnum;
@@ -128,31 +130,29 @@ void B_rcv(struct pkt packet)
     p->next = NULL;
     p->pre = NULL;
 
+    packet.acknum = packet.seqnum + 1;
+    packet.checksum = CheckSum(packet);
+    tolayer3(1, packet);
 
     for (head = B_buffer_head, i = 0;
             i < WINDOWSIZE && head != NULL;
             i++, head = head->next)
     {
-        if (head->packet.seqnum > p->packet.seqnum)
+        if (head->packet.seqnum == p->packet.seqnum) {
+            break;
+        }
+        else if (head->packet.seqnum > p->packet.seqnum)
         {
             p->next = head;
             if (head->pre != NULL)
                 head->pre->next = p;
             p->pre = head->pre;
             head->pre = p;
-            nRecvd++;
-            packet.acknum = packet.seqnum + 1;
-            packet.checksum = CheckSum(packet);
-            tolayer3(1, packet);
             break;
         } else if (head->next == NULL) {
             /* Queue tail */
             head->next = p;
             p->pre = head;
-            packet.acknum = packet.seqnum + 1;
-            packet.checksum = CheckSum(packet);
-            tolayer3(1, packet);
-            nRecvd++;
             break;
         }
     }
@@ -160,22 +160,21 @@ void B_rcv(struct pkt packet)
     if (B_buffer_head == NULL)
     {
         B_buffer_head = p;
-        nRecvd++;
-        packet.acknum = packet.seqnum + 1;
-        packet.checksum = CheckSum(packet);
-        tolayer3(1, packet);
     }
 
-    if (nRecvd == WINDOWSIZE)
+    head = B_buffer_head;
+    while (head != NULL)
     {
-        for (head = B_buffer_head, i = 0;
-                i < WINDOWSIZE && head != NULL;
-                i++)
+        if (head->packet.seqnum == nRecvd)
         {
             tolayer5(1, head->packet.payload);
             p = head->next;
             free(head);
             head = p;
+            nRecvd++;
+            B_buffer_head = head;
+        } else {
+            break;
         }
     }
 }
