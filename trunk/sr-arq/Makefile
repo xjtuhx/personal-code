@@ -1,5 +1,5 @@
 all:
-	g++ sr.cpp emulator.cpp -o emu
+	g++ -g3 sr.cpp emulator.cpp -o emu
 
 .PHONY: clean
 
