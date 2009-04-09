@@ -51,7 +51,7 @@ void A_rcv(struct pkt packet)
     if (CheckSum(packet) != packet.checksum)
         return;
     for(p = A_buffer_head, i = 0; i < WINDOWSIZE && p != NULL;
-            i++, p = p->next)
+            i++)
     {
         if (p == A_buffer_head)
         {
@@ -71,11 +71,16 @@ void A_rcv(struct pkt packet)
                 } else {
                     A_pkt_sent--;
                 }
+            } else {
+                p = p->next;
             }
-        } else if (p->packet.seqnum + 1 == packet.acknum) {
-            if (p->packet.acknum != -1)
-                stoptimer(0, p->packet.seqnum);
-            p->packet.acknum = -1;
+        } else {
+            if (p->packet.seqnum + 1 == packet.acknum) {
+                if (p->packet.acknum != -1)
+                    stoptimer(0, p->packet.seqnum);
+                p->packet.acknum = -1;
+            }
+            p = p->next;
         }
     }
 }
