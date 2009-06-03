@@ -1,0 +1,9 @@
+# -*- encoding:gbk -*-
+
+import re
+
+text = u'¹²4Ò³'
+pattern = re.compile(u'¹²(%d)Ò³')
+m = pattern.match(text)
+if m:
+    print m.group(0)
