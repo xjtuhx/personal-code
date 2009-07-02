@@ -169,7 +169,6 @@ Begin VB.Form DataSendFrm
       _ExtentX        =   11245
       _ExtentY        =   9763
       _Version        =   393217
-      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"DataSendFrm.frx":8A2E
    End
@@ -210,5 +209,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
         Case PREF_BTN
             optionsDialog.Show vbModal, DataSendFrm
         Case QUIT_BTN
+            Unload Me
+            End
     End Select
 End Sub
