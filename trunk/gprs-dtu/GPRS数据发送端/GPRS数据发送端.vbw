@@ -1,0 +1,9 @@
+DataSendFrm = 88, 116, 997, 742, , 36, 15, 945, 641, C
+optionsDialog = 0, 0, 0, 0, C, 0, 0, 0, 0, C
+frmLogin = 32, 62, 1052, 688, , 135, 242, 1044, 868, C
+mod_Connection = 0, 0, 0, 0, C
+mod_Main = 66, 87, 975, 713, 
+mod_ReadINI = 22, 29, 955, 597, 
+mod_Tools = 44, 58, 977, 626, 
+mod_DataBase = 154, 203, 998, 829, 
+mod_Constants = 88, 116, 932, 742, 
