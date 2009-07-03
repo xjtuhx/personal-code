@@ -1,6 +1,6 @@
 Type=Exe
 Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\WINDOWS\system32\stdole2.tlb#OLE Automation
-Reference=*\G{2DFDD226-8AE3-4457-91B3-6CCCB6930E5C}#1.0#0#Libs\RAS_AUTO.dll#32 bit RAS calls from VB6
+Reference=*\G{2DFDD226-8AE3-4457-91B3-6CCCB6930E5C}#1.0#0#..\GPRS数据接收端\Libs\RAS_AUTO.dll#32 bit RAS calls from VB6
 Reference=*\G{2A75196C-D9EB-4129-B803-931327F72D5C}#2.8#0#C:\Program Files\Common Files\system\ado\msado15.dll#Microsoft ActiveX Data Objects 2.8 Library
 Object={248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0; MSWINSCK.OCX
 Object={648A5603-2C6E-101B-82B6-000000000014}#1.1#0; MSCOMM32.OCX
@@ -17,7 +17,7 @@ Module=mod_Main; mod_main.bas
 Module=mod_ReadINI; mod_ReadINI.bas
 Module=mod_Tools; mod_Tools.bas
 Module=mod_DataBase; mod_DataBase.bas
-Module=mod_Constants; mod_Constants.bas
+Module=mod_constants; mod_Constants.bas
 IconForm="DataSendFrm"
 Startup="Sub Main"
 HelpFile=""

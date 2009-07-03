@@ -13,7 +13,7 @@ Public Function GlConnOK() As Boolean
         GlConnOK = True
         'FrmMain.TxtConnOK = "连接正常" & ConnMSDB
         With DataSendFrm
-            .statusBar.Panels(1).Text = "连接正常" & ConnMSDB
+            .StatusBar.Panels(1).Text = "连接正常" & ConnMSDB
             .infoBox.SelStart = glInfoTxtLen
             .infoBox.SelText = CON_SUCCESS
         End With
@@ -31,7 +31,7 @@ Public Function GlConnOK() As Boolean
     If GlConn.State = 1 Then
         GlConnOK = True
         With DataSendFrm
-            .statusBar.Panels(1).Text = "连接正常" & ConnMSDB
+            .StatusBar.Panels(1).Text = "连接正常" & ConnMSDB
             .infoBox.SelStart = glInfoTxtLen
             .infoBox.SelText = RECON_SUCCESS
         End With
@@ -40,7 +40,7 @@ Public Function GlConnOK() As Boolean
     End If
     GlConnOK = False
     With DataSendFrm
-        .statusBar.Panels(1).Text = "失去链接！"
+        .StatusBar.Panels(1).Text = "失去链接！"
         .infoBox.SelStart = glInfoTxtLen
         .infoBox.SelText = CON_FAILURE
     End With
