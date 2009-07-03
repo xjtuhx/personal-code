@@ -5,9 +5,10 @@ Option Explicit
 '                       全局变量定义
 '=====================================================
 
-Global GlConn As ADODB.Connection     '全局数据库连接
+Global glConnA As ADODB.Connection     '全局数据库连接
+Global glConnB As ADODB.Connection
 
-Global glRAS As New RAS.RASEngine   '全局拨号控制中心
+'Global glRAS As New RAS.RASEngine   '全局拨号控制中心
 
 Global glServer As Boolean      '全局服务是否启动
 Global glCenterDial As String   '全局数据中心拨号网络
@@ -20,20 +21,21 @@ Global glDBUSer As String       '数据库用户及密码
 Global glDBPass As String
 Global glDBIP As String
 
-Global GLConnString As String '全局连接字符串
-Global glWebUrl As String '设备即时信息地址
-Global ConnMSDB As Integer
+Global glConnStringA As String '全局连接字符串
+Global glConnStringB As String
 
 Global glInfoTxtLen As Integer
 
 '==================================================== 主程序
 Sub Main()
     '________________________ 初始化全局变量
-    Set GlConn = New Connection
+    Set glConnA = New Connection
+    Set glConnB = New Connection
+    
     '________________________ 读取数据中心信息
     glCenterDial = GetProfileString(App.Path & "\control.ini", "数据中心信息", "拨号网络")
     glCenterIP = GetProfileString(App.Path & "\control.ini", "数据中心信息", "数据中心IP")
-    'glLocalIP = GetProfileString(App.Path & "\control.ini", "局域网信息", "IP")
+    glLocalIP = GetProfileString(App.Path & "\control.ini", "局域网信息", "IP")
     'glWebUrl = GetProfileString(App.Path & "\Control.ini", "数据中心信息", "数据中心URL")
     '________________________ 调用并显示主窗体
     Load DataSendFrm
@@ -70,4 +72,3 @@ Sub Main()
     glServer = False
     'ChangeRoute '///改变本机路由表
 End Sub
-

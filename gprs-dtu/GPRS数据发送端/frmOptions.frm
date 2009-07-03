@@ -44,12 +44,12 @@ Begin VB.Form optionsDialog
       TabCaption(1)   =   "数据库参数配置"
       TabPicture(1)   =   "frmOptions.frx":001C
       Tab(1).ControlEnabled=   0   'False
-      Tab(1).Control(0)=   "Label4"
-      Tab(1).Control(1)=   "Label5"
-      Tab(1).Control(2)=   "Label6"
-      Tab(1).Control(3)=   "dbFileBox"
-      Tab(1).Control(4)=   "dbUsernameBox"
-      Tab(1).Control(5)=   "dbPasswdBox"
+      Tab(1).Control(0)=   "dbPasswdBox"
+      Tab(1).Control(1)=   "dbUsernameBox"
+      Tab(1).Control(2)=   "dbFileBox"
+      Tab(1).Control(3)=   "Label6"
+      Tab(1).Control(4)=   "Label5"
+      Tab(1).Control(5)=   "Label4"
       Tab(1).ControlCount=   6
       Begin VB.TextBox dbPasswdBox 
          Height          =   270
@@ -79,7 +79,7 @@ Begin VB.Form optionsDialog
          Height          =   270
          Left            =   2280
          TabIndex        =   8
-         Text            =   "55667"
+         Text            =   "56789"
          Top             =   2040
          Width           =   3255
       End
@@ -194,7 +194,7 @@ Private Sub OKButton_Click()
     Else
         MsgBox "参数配置有误，请检查参数配置", vbOKOnly, "错误"
         Cancelled = True
-    
+    End If
 End Sub
 
 

@@ -8,7 +8,7 @@ Option Explicit
 Global glConnA As ADODB.Connection     '全局数据库连接
 Global glConnB As ADODB.Connection
 
-Global glRAS As New RAS.RASEngine   '全局拨号控制中心
+'Global glRAS As New RAS.RASEngine   '全局拨号控制中心
 
 Global glServer As Boolean      '全局服务是否启动
 Global glCenterDial As String   '全局数据中心拨号网络
@@ -72,9 +72,3 @@ Sub Main()
     glServer = False
     'ChangeRoute '///改变本机路由表
 End Sub
-
-
-
-
-
-
