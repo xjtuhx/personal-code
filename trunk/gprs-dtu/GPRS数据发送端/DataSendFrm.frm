@@ -1,4 +1,5 @@
 VERSION 5.00
+Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "MSWINSCK.OCX"
 Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
 Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "RICHTX32.OCX"
 Begin VB.Form DataSendFrm 
@@ -10,12 +11,20 @@ Begin VB.Form DataSendFrm
    ClientWidth     =   6450
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
+   MinButton       =   0   'False
    ScaleHeight     =   6750
    ScaleWidth      =   6450
-   StartUpPosition =   3  '窗口缺省
+   StartUpPosition =   2  '屏幕中心
+   Begin MSWinsockLib.Winsock sock 
+      Left            =   5160
+      Top             =   5880
+      _ExtentX        =   741
+      _ExtentY        =   741
+      _Version        =   393216
+   End
    Begin MSComctlLib.ImageList ImageList1 
-      Left            =   4080
-      Top             =   2520
+      Left            =   5760
+      Top             =   5760
       _ExtentX        =   1005
       _ExtentY        =   1005
       BackColor       =   -2147483643
@@ -96,9 +105,10 @@ Begin VB.Form DataSendFrm
             TextSave        =   "状态栏"
          EndProperty
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
+            Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "显示日期"
+            TextSave        =   "2009-7-4"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -127,10 +137,14 @@ Begin VB.Form DataSendFrm
          NumButtons      =   9
          BeginProperty Button1 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "连接服务器"
+            Key             =   "连接服务器"
+            Description     =   "连接服务器"
             ImageIndex      =   9
          EndProperty
          BeginProperty Button2 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "断开服务器"
+            Key             =   "断开服务器"
+            Description     =   "断开服务器"
             ImageIndex      =   8
          EndProperty
          BeginProperty Button3 {66833FEA-8583-11D1-B16A-00C0F0283628} 
@@ -138,10 +152,14 @@ Begin VB.Form DataSendFrm
          EndProperty
          BeginProperty Button4 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "开始传输"
+            Key             =   "开始传输"
+            Description     =   "开始传输"
             ImageIndex      =   7
          EndProperty
          BeginProperty Button5 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "停止传输"
+            Key             =   "停止传输"
+            Description     =   "停止传输"
             ImageIndex      =   11
          EndProperty
          BeginProperty Button6 {66833FEA-8583-11D1-B16A-00C0F0283628} 
@@ -149,6 +167,8 @@ Begin VB.Form DataSendFrm
          EndProperty
          BeginProperty Button7 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "参数配置"
+            Key             =   "参数配置"
+            Description     =   "参数配置"
             ImageIndex      =   10
          EndProperty
          BeginProperty Button8 {66833FEA-8583-11D1-B16A-00C0F0283628} 
@@ -156,6 +176,8 @@ Begin VB.Form DataSendFrm
          EndProperty
          BeginProperty Button9 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Caption         =   "退出程序"
+            Key             =   "退出程序"
+            Description     =   "退出程序"
             ImageIndex      =   1
          EndProperty
       EndProperty
@@ -169,6 +191,7 @@ Begin VB.Form DataSendFrm
       _ExtentX        =   11245
       _ExtentY        =   9763
       _Version        =   393217
+      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"DataSendFrm.frx":8A2E
    End
@@ -180,36 +203,57 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Const CON_BTN = 1
-Const DIS_BTN = 2
-Const START_BTN = 4
-Const STOP_BTN = 5
-Const PREF_BTN = 7
-Const QUIT_BTN = 9
-
-
 Private Sub Form_Load()
-    statusBar.Panels(2).Text = Date
     statusBar.Panels(3).Text = Time
 End Sub
 
 Private Sub Timer1_Timer()
-    statusBar.Panels(2).Text = Date
     statusBar.Panels(3).Text = Time
 End Sub
 
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
-    Select Case Button.Index
-        Case CON_BTN
+    Select Case Button.Key
+        Case "连接服务器"
+            '远程主机名
+            If optionsDialog.ipBox = "" Then
+                MsgBox "请配置服务器IP参数", vbOKOnly, "缺少参数"
+            End If
+            If optionsDialog.portBox = "" Then
+                MsgBox "请配置服务器端口参数", vbOKOnly, "缺少参数"
+            End If
             
-        Case DIS_BTN
+            sock.RemoteHost = optionsDialog.ipBox
+            '网络端口
+            sock.RemotePort = optionsDialog.portBox
+            '发出连接命令
+            sock.Connect
             
-        Case START_BTN
-        Case STOP_BTN
-        Case PREF_BTN
+        Case "断开服务器"
+            sock.Close
+        Case "开始传输"
+            If Not sock.State = sckConnected Then
+                MsgBox "连接已断开，请重新连接服务器！", vbOKOnly, "出错信息"
+            Else
+                Dim i As Integer
+                For i = 0 To 5
+                    sock.SendData ("Hello! VB Winsock!")
+                    Sleep (1000)
+                Next i
+                
+            End If
+        Case "停止传输"
+        Case "参数配置"
             optionsDialog.Show vbModal, DataSendFrm
-        Case QUIT_BTN
+        Case "退出程序"
             Unload Me
             End
     End Select
+End Sub
+
+Private Sub sock_Close()
+    MsgBox ("socket closed")
+End Sub
+
+Private Sub sock_Connect()
+    MsgBox ("socket connected")
 End Sub

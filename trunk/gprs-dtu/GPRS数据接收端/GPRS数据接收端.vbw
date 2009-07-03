@@ -1,8 +1,9 @@
-DataRecvFrm = 71, 228, 857, 796, , 15, 8, 801, 634, C
-mod_Communication = 0, 0, 0, 0, C
+DataRecvFrm = 71, 228, 857, 796, Z, 15, 8, 801, 634, C
+mod_Communication = 132, 174, 942, 800, 
 mod_DataBase = 84, 187, 870, 755, 
 mod_Main = 176, 232, 873, 858, 
 mod_ReadINI = 0, 0, 0, 0, C
-mod_Tools = 0, 0, 0, 0, C
+mod_Tools = 220, 290, 1030, 915, 
 mod_Constants = 154, 203, 851, 829, 
 frmLogin = 8, 335, 900, 848, , 65, 130, 762, 756, C
+phoneDialFrm = 198, 261, 1008, 886, , 132, 174, 829, 800, C

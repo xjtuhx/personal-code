@@ -17,6 +17,7 @@ Module=mod_ReadINI; mod_ReadINI.bas
 Module=mod_Tools; mod_Tools.bas
 Module=mod_Constants; mod_Constants.bas
 Form=frmDBLogon.frm
+Form=phoneDialFrm.frm
 IconForm="DataRecvFrm"
 Startup="Sub Main"
 HelpFile=""

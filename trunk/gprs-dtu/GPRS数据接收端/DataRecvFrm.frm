@@ -15,12 +15,14 @@ Begin VB.Form DataRecvFrm
    ScaleHeight     =   7080
    ScaleWidth      =   8460
    StartUpPosition =   2  '屏幕中心
-   Begin MSWinsockLib.Winsock serverSock 
+   Begin MSWinsockLib.Winsock Sock 
+      Index           =   0
       Left            =   600
       Top             =   6000
       _ExtentX        =   741
       _ExtentY        =   741
       _Version        =   393216
+      LocalPort       =   56789
    End
    Begin MSComctlLib.ImageList imageBar 
       Left            =   1200
@@ -101,6 +103,7 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   9551
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":8A3A
       End
@@ -112,6 +115,13 @@ Begin VB.Form DataRecvFrm
       TabIndex        =   2
       Top             =   960
       Width           =   2535
+      Begin MSWinsockLib.Winsock Listener 
+         Left            =   480
+         Top             =   4440
+         _ExtentX        =   741
+         _ExtentY        =   741
+         _Version        =   393216
+      End
       Begin MSComctlLib.TreeView clientList 
          Height          =   5295
          Left            =   120
@@ -146,7 +156,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-3"
+            TextSave        =   "2009-7-4"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -232,9 +242,71 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Option Explicit
+Const BUSY As Boolean = False
+Const FREE As Boolean = True
+Dim ConnectState() As Boolean
+
 Private Sub Form_Load()
     statusBar.Panels(3).Text = Time
+    ReDim Preserve ConnectState(0 To 1)
+    On Error Resume Next
+    ConnectState(0) = FREE
+    ConnectState(1) = FREE
 End Sub
+
+Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
+    Dim SockIndex As Integer
+    Dim SockNum As Integer
+    On Error Resume Next
+    'Form1.Print requestID & "连接请求"
+    '查找连接的用户数
+    SockNum = UBound(ConnectState)
+    If SockNum > 14 Then
+        'Form1.Print SockIndex & ""
+        Exit Sub
+    End If
+    '查找空闲的sock
+    SockIndex = FindFreeSocket()
+    '如果已有的sock都忙，而且sock数不超过15个，动态添加sock
+    If SockIndex > SockNum Then
+        Load Sock(SockIndex)
+    End If
+    ConnectState(SockIndex) = BUSY
+    Sock(SockIndex).Tag = SockIndex
+    '接受请求
+    Sock(SockIndex).Accept (requestID)
+    'Form1.Print SockIndex & "接受请求"
+End Sub
+
+Private Sub Sock_Close(Index As Integer)
+    If Sock(Index).State <> sckClosed Then
+        Sock(Index).Close
+    End If
+    ConnectState(Index) = FREE
+    'Form1.Print Index & "close"
+End Sub
+
+
+Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
+    Dim dx As String
+    Sock(Index).GetData dx, vbString
+    AppendInfoLine (dx)
+End Sub
+
+Public Function FindFreeSocket()
+    Dim SockCount, i As Integer
+    SockCount = UBound(ConnectState)
+    For i = 0 To SockCount
+        If ConnectState(i) = FREE Then
+            FindFreeSocket = i
+            Exit Function
+        End If
+    Next i
+    ReDim Preserve ConnectState(0 To SockCount + 1)
+    FindFreeSocket = UBound(ConnectState)
+End Function
+
 
 Private Sub Timer1_Timer()
     statusBar.Panels(3).Text = Time
@@ -243,13 +315,34 @@ End Sub
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
         Case "连接网络"
+            'phoneDialFrm.Show vbModal
             
         Case "断开连接"
-            
+            Dim temp As Long
+            temp = RasHangUp(hRasConn)
         Case "开始接收"
-            
+            '设置本机连接端口的localport属性的内容
+            '请注意！必须是整体值
+            ReDim Preserve ConnectState(0 To 1)
+            On Error Resume Next
+            ConnectState(0) = FREE
+            ConnectState(1) = FREE
+            Dim portNum As String
+LoopTag:
+            portNum = InputBox("请输入监听端口号", "接受参数配置", "56789")
+            If portNum = "" Then MsgBox "还没输入！": GoTo LoopTag
+            If Not IsNumeric(portNum) Then MsgBox "请输入数字！":  GoTo LoopTag
+            Listener.LocalPort = portNum
+            '将本机连接端口设置为监听模式
+            Listener.Listen
         Case "停止接收"
-            
+            Dim SockCount, i As Integer
+            SockCount = UBound(ConnectState)
+            For i = 0 To SockCount
+                If Sock(i).State <> sckClosed Then
+                    Sock(i).Close
+                End If
+            Next i
         Case "参数配置"
             
         Case "退出程序"
@@ -257,4 +350,12 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             End
     End Select
 
+End Sub
+
+Public Sub AppendInfoLine(line As String)
+    With infoBox
+        .SelStart = glInfoTxtLen
+        .SelText = line & vbNewLine
+    End With
+    glInfoTxtLen = glInfoTxtLen + Len(line)
 End Sub
