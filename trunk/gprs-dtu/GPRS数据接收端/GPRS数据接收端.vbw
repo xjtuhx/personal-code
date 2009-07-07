@@ -1,5 +1,4 @@
 DataRecvFrm = 71, 228, 857, 796, , 15, 8, 801, 634, C
-mod_Communication = 132, 174, 942, 800, C
 mod_DataBase = -2, 191, 784, 759, 
 mod_Main = 176, 232, 967, 858, C
 mod_ReadINI = 177, 149, 987, 775, C
@@ -7,3 +6,4 @@ mod_Tools = 220, 290, 1030, 915, C
 mod_Constants = 154, 203, 851, 829, C
 frmLogin = 36, 323, 928, 836, , 65, 130, 762, 756, C
 phoneDialFrm = 198, 261, 1008, 886, , 132, 174, 829, 800, C
+mod_RasAPI = 63, 219, 962, 787, 

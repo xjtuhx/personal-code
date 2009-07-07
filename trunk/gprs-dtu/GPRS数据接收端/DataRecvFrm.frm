@@ -111,7 +111,6 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   12515
          _ExtentY        =   9340
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":8A3A
       End
@@ -341,7 +340,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             toolBar.Buttons(BTN_STOP).Enabled = False
         Case BTN_DISCONN
             Dim temp As Long
-            temp = RasHangUp(hRasConn)
+            'temp = RasHangUp(hRasConn)
             toolBar.Buttons(BTN_CONNECT).Enabled = True
             toolBar.Buttons(BTN_DISCONN).Enabled = False
             toolBar.Buttons(BTN_START).Enabled = False
