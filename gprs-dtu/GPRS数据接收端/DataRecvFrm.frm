@@ -45,47 +45,47 @@ Begin VB.Form DataRecvFrm
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
          NumListImages   =   11
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":000C
+            Picture         =   "DataRecvFrm.frx":0CCA
             Key             =   ""
          EndProperty
          BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":0C5E
+            Picture         =   "DataRecvFrm.frx":191C
             Key             =   ""
          EndProperty
          BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":18B0
+            Picture         =   "DataRecvFrm.frx":256E
             Key             =   ""
          EndProperty
          BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":2502
+            Picture         =   "DataRecvFrm.frx":31C0
             Key             =   ""
          EndProperty
          BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":3154
+            Picture         =   "DataRecvFrm.frx":3E12
             Key             =   ""
          EndProperty
          BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":3E2E
+            Picture         =   "DataRecvFrm.frx":4AEC
             Key             =   ""
          EndProperty
          BeginProperty ListImage7 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":4B08
+            Picture         =   "DataRecvFrm.frx":57C6
             Key             =   ""
          EndProperty
          BeginProperty ListImage8 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":57E2
+            Picture         =   "DataRecvFrm.frx":64A0
             Key             =   ""
          EndProperty
          BeginProperty ListImage9 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":6434
+            Picture         =   "DataRecvFrm.frx":70F2
             Key             =   ""
          EndProperty
          BeginProperty ListImage10 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":710E
+            Picture         =   "DataRecvFrm.frx":7DCC
             Key             =   ""
          EndProperty
          BeginProperty ListImage11 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataRecvFrm.frx":7DE8
+            Picture         =   "DataRecvFrm.frx":8AA6
             Key             =   ""
          EndProperty
       EndProperty
@@ -111,8 +111,9 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   12515
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   3
-         TextRTF         =   $"DataRecvFrm.frx":8A3A
+         TextRTF         =   $"DataRecvFrm.frx":96F8
       End
    End
    Begin MSComctlLib.StatusBar statusBar 
@@ -198,11 +199,11 @@ Begin VB.Form DataRecvFrm
             Style           =   3
          EndProperty
          BeginProperty Button7 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "参数配置"
-            Key             =   "参数配置"
-            Description     =   "参数配置"
+            Caption         =   "关于"
+            Key             =   "关于"
+            Description     =   "关于"
             Object.ToolTipText     =   "参数配置选项"
-            ImageIndex      =   9
+            ImageIndex      =   3
          EndProperty
          BeginProperty Button8 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Style           =   3
@@ -330,17 +331,73 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 
                 phoneDialFrm.Show vbModal
                 
-                'ret = create_ppp_connection(name_modem, RASET_Phone, VS_Default, phoneDialfrm.txtPhoneNumber, _
-                '        phonedialfrm.txtPhoneUser, phonedialfrm.txtPhonePass,
+                If phoneDialFrm.Cancelled Then
+                    line = "用户取消。"
+                    infoBox.SelStart = glInfoTxtLen
+                    infoBox.SelText = line & vbNewLine
+                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                    Exit Sub
+                End If
+                
+                ret = Create_PPP_Connection(NAME_MODEM, RASET_Phone, VS_Default, phoneDialFrm.txtPhoneNumber, _
+                        phoneDialFrm.txtPhoneUser, phoneDialFrm.txtPhonePass, phoneDialFrm.cmbModem.SelText, _
+                        RASDT_Modem, False, vbNullString, False, vbNullString, vbNullString, False, vbNullString, _
+                        vbNullString)
+                
+                If ret = True Then
+                    line = "连接创建成功！"
+                    infoBox.SelStart = glInfoTxtLen
+                    infoBox.SelText = line & vbNewLine
+                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                Else
+                    line = "连接创建失败，请重试！"
+                    infoBox.SelStart = glInfoTxtLen
+                    infoBox.SelText = line & vbNewLine
+                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                    Exit Sub
+                End If
             End If
-            'phoneDialFrm.Show vbModal
-            toolBar.Buttons(BTN_CONNECT).Enabled = False
-            toolBar.Buttons(BTN_DISCONN).Enabled = True
-            toolBar.Buttons(BTN_START).Enabled = True
-            toolBar.Buttons(BTN_STOP).Enabled = False
+            
+            ret = Is_PPP_Connecting(NAME_MODEM)
+            
+            If ret = False Then
+                line = "正在尝试拨号..."
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                
+                ret = Dial_PPP_Connection(NAME_MODEM)
+            End If
+            
+            If ret = True Then
+                line = "网络连接已经建立！"
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                
+                '显示服务器IP信息
+                MsgBox "接收端IP地址：" & Get_Client_PPP_IPAddress(NAME_MODEM)
+                
+                toolBar.Buttons(BTN_CONNECT).Enabled = False
+                toolBar.Buttons(BTN_DISCONN).Enabled = True
+                toolBar.Buttons(BTN_START).Enabled = True
+                toolBar.Buttons(BTN_STOP).Enabled = False
+            Else
+                line = "拨号失败，请重试！"
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+            End If
+            
         Case BTN_DISCONN
-            Dim temp As Long
-            'temp = RasHangUp(hRasConn)
+            ret = Disconnect_PPP_Connection(NAME_MODEM)
+            If ret = False Then
+                statusBar.Panels(1) = "断开连接失败！"
+                Exit Sub
+            Else
+                statusBar.Panels(1) = "断开连接成功！"
+            End If
+            
             toolBar.Buttons(BTN_CONNECT).Enabled = True
             toolBar.Buttons(BTN_DISCONN).Enabled = False
             toolBar.Buttons(BTN_START).Enabled = False
@@ -361,7 +418,6 @@ LoopTag:
             '将本机连接端口设置为监听模式
             Listener.Listen
             If Listener.State = sckListening Then
-                statusBar.Panels(1).Text = LISTEN_SUCCESS
                 line = LISTEN_SUCCESS & "侦听地址：" & Listener.LocalIP & " 侦听端口：" & Listener.LocalPort
                 infoBox.SelStart = glInfoTxtLen
                 infoBox.SelText = line & vbNewLine
@@ -369,7 +425,6 @@ LoopTag:
                 toolBar.Buttons(BTN_START).Enabled = False
                 toolBar.Buttons(BTN_STOP).Enabled = True
             Else
-                statusBar.Panels(1).Text = LISTEN_FAILURE
                 infoBox.SelStart = glInfoTxtLen
                 infoBox.SelText = LISTEN_FAILURE + vbNewLine
                 glInfoTxtLen = glInfoTxtLen + Len(LISTEN_FAILURE & vbNewLine)
@@ -384,14 +439,14 @@ LoopTag:
                     Sock(i).Close
                 End If
             Next i
-            statusBar.Panels(1).Text = LISTEN_CLOSED
             infoBox.SelStart = glInfoTxtLen
             infoBox.SelText = LISTEN_CLOSED & vbNewLine
             glInfoTxtLen = glInfoTxtLen + Len(LISTEN_CLOSED & vbNewLine)
             toolBar.Buttons(BTN_START).Enabled = True
             toolBar.Buttons(BTN_STOP).Enabled = False
         Case BTN_PREF
-            MsgBox "Not Implemented", vbOKOnly, "N/A"
+            'MsgBox "Not Implemented", vbOKOnly, "N/A"
+            frmAbout.Show 1
         Case BTN_QUIT
             Unload Me
             End

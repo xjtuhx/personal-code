@@ -18,6 +18,7 @@ Module=mod_Constants; mod_Constants.bas
 Form=frmDBLogon.frm
 Form=phoneDialFrm.frm
 Module=mod_RasAPI; RasAPI.bas
+Form=frmAbout.frm
 IconForm="DataRecvFrm"
 Startup="Sub Main"
 HelpFile=""

@@ -29,7 +29,7 @@ Global Const BTN_CONNECT = "连接有线网络"
 Global Const BTN_DISCONN = "断开有线网络"
 Global Const BTN_START = "开始接收"
 Global Const BTN_STOP = "停止接收"
-Global Const BTN_PREF = "参数配置"
+Global Const BTN_PREF = "关于"
 Global Const BTN_QUIT = "退出程序"
 
 Global Const NAME_MODEM = "MODEM_PHONE"

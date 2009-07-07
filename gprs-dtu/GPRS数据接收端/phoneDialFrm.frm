@@ -13,6 +13,7 @@ Begin VB.Form phoneDialFrm
    ScaleHeight     =   2955
    ScaleWidth      =   3630
    ShowInTaskbar   =   0   'False
+   StartUpPosition =   2  '屏幕中心
    Begin VB.ComboBox cmbModem 
       Height          =   300
       Left            =   1560
@@ -24,6 +25,7 @@ Begin VB.Form phoneDialFrm
       Height          =   270
       Left            =   1560
       TabIndex        =   7
+      Text            =   "163"
       Top             =   1320
       Width           =   1695
    End
@@ -31,6 +33,7 @@ Begin VB.Form phoneDialFrm
       Height          =   270
       Left            =   1560
       TabIndex        =   6
+      Text            =   "163"
       Top             =   840
       Width           =   1695
    End
@@ -38,6 +41,7 @@ Begin VB.Form phoneDialFrm
       Height          =   270
       Left            =   1560
       TabIndex        =   5
+      Text            =   "96136"
       Top             =   360
       Width           =   1695
    End
@@ -127,11 +131,14 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub OKButton_Click()
-    If txtPhoneNumber.Text = "" Or txtPhoneUser.Text = "" Or txtPhonePass.Text = "" Then
+    If txtPhoneNumber.Text = "" Or txtPhoneUser.Text = "" Or txtPhonePass.Text = "" Or cmbModem.SelText = "" Then
         temp = MsgBox("您没有输入有效的拨号网络参数。", vbOKOnly, "错误")
+        Cancelled = True
         Exit Sub
     End If
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_NUMBER, Trim(txtPhoneNumber)
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_USER, xorPWD(Trim(txtPhoneUser))
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_PASS, xorPWD(Trim(txtPhonePass))
+    Cancelled = False
+    Me.Hide
 End Sub
