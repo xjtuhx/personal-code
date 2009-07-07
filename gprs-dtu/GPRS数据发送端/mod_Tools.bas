@@ -59,11 +59,11 @@ End Sub
 '----------------------------------------- 密码加密、解密
 Public Function xorPWD(ByVal s As String) As String
     Dim temp As String
-    Dim I
+    Dim i
         temp = ""
-        For I = 1 To Len(s)
-            temp = temp + Chr(Asc(Mid(s, I, 1)) Xor 13)
-        Next I
+        For i = 1 To Len(s)
+            temp = temp + Chr(Asc(Mid(s, i, 1)) Xor 13)
+        Next i
         xorPWD = temp
 End Function
 
@@ -109,4 +109,59 @@ Public Sub SetFormNoClose(myForm As Object)
     RemoveMenu hMenu, &HF060, &H200&
     
 End Sub
+
+'========================= 验证IP用
+Public Function CheckIP(IPValue As String) As Boolean
+    Dim IPReg As New RegExp
+    IPReg.Pattern = "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
+    Dim posIP1 As Integer: Dim intIP1 As Integer
+    Dim posIP2 As Integer: Dim intIP2 As Integer
+    Dim posIP3 As Integer: Dim intIP3 As Integer
+    Dim intIP4 As Integer
+   
+    If IPReg.Test(IPValue) = False Then
+        CheckIP = False
+        MsgBox "您输入的 IP 地址格式不对，请重新输入！"
+        Exit Function
+    End If
+   
+    posIP1 = InStr(1, IPValue, ".")
+    intIP1 = CInt(Mid(IPValue, 1, posIP1 - 1))
+    If intIP1 < 1 Or intIP1 > 224 Then
+        CheckIP = False
+        MsgBox "第一段IP地址必须在 1-223 之间！"
+        Exit Function
+    End If
+   
+    posIP2 = InStr(posIP1 + 1, IPValue, ".")
+    intIP2 = CInt(Mid(IPValue, posIP1 + 1, posIP2 - posIP1 - 1))
+    If intIP2 > 255 Then
+        CheckIP = False
+        MsgBox "第二段IP地址必须在 0-255 之间！"
+        Exit Function
+    End If
+   
+    posIP3 = InStr(posIP2 + 1, IPValue, ".")
+    intIP3 = CInt(Mid(IPValue, posIP2 + 1, posIP3 - posIP2 - 1))
+    If intIP3 > 255 Then
+        CheckIP = False
+        MsgBox "第三段IP地址必须在 0-255 之间！"
+        Exit Function
+    End If
+   
+    intIP4 = CInt(Mid(IPValue, posIP3 + 1, Len(IPValue) - posIP3))
+    If intIP4 > 255 Then
+        CheckIP = False
+        MsgBox "第四段IP地址必须在 0-255 之间！"
+        Exit Function
+    End If
+   
+    CheckIP = True
+End Function
+
+Public Function AppendLogInfo(infobox As RichTextBox, line As String)
+    infobox.SelStart = glInfoTxtLen
+    infobox.SelText = line & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+End Function
 

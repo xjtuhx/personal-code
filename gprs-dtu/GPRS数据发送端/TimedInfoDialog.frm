@@ -6,6 +6,7 @@ Begin VB.Form TimedInfoDialog
    ClientLeft      =   2760
    ClientTop       =   3750
    ClientWidth     =   4335
+   Icon            =   "TimedInfoDialog.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
@@ -45,11 +46,11 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Option Explicit
-Public Success As Boolean
+Public SUCCESS As Boolean
 Public Timeout As Integer
 
 Private Sub Form_Load()
-    Success = False
+    SUCCESS = False
     Timeout = 30
     timeout_timer.Enabled = False
 End Sub
@@ -59,7 +60,7 @@ Private Sub timeout_timer_Timer()
         timeLabel.Caption = "²Ù×÷Ê£Óà " & str(Timeout) & " Ãë"
         Timeout = Timeout - 1
     Else
-        Success = False
+        SUCCESS = False
         timeout_timer.Enabled = False
         Me.Hide
     End If
@@ -68,13 +69,13 @@ End Sub
 Public Sub Start(ByRef infoText As String)
     infoLabel.Caption = infoText
     timeLabel.Caption = "²Ù×÷Ê£Óà " & str(Timeout) & " Ãë"
-    Success = False
+    SUCCESS = False
     timeout_timer.Enabled = True
     Me.Show vbModal
 End Sub
 
 Public Sub Cancel()
-    Success = True
+    SUCCESS = True
     timeout_timer.Enabled = False
     Me.Hide
 End Sub

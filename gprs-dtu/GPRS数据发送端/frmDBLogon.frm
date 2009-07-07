@@ -8,6 +8,7 @@ Begin VB.Form frmLogin
    ClientLeft      =   7560
    ClientTop       =   5745
    ClientWidth     =   4950
+   Icon            =   "frmDBLogon.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
@@ -35,7 +36,7 @@ Begin VB.Form frmLogin
       TabsPerRow      =   2
       TabHeight       =   520
       TabCaption(0)   =   "result_table±í"
-      TabPicture(0)   =   "frmDBLogon.frx":0000
+      TabPicture(0)   =   "frmDBLogon.frx":0CCA
       Tab(0).ControlEnabled=   -1  'True
       Tab(0).Control(0)=   "Label1"
       Tab(0).Control(0).Enabled=   0   'False
@@ -59,28 +60,18 @@ Begin VB.Form frmLogin
       Tab(0).Control(9).Enabled=   0   'False
       Tab(0).ControlCount=   10
       TabCaption(1)   =   "GPSData±í"
-      TabPicture(1)   =   "frmDBLogon.frx":001C
+      TabPicture(1)   =   "frmDBLogon.frx":0CE6
       Tab(1).ControlEnabled=   0   'False
       Tab(1).Control(0)=   "txtTimestamp(1)"
-      Tab(1).Control(0).Enabled=   0   'False
       Tab(1).Control(1)=   "txtTableName(1)"
-      Tab(1).Control(1).Enabled=   0   'False
       Tab(1).Control(2)=   "txtPasswd(1)"
-      Tab(1).Control(2).Enabled=   0   'False
       Tab(1).Control(3)=   "txtUserName(1)"
-      Tab(1).Control(3).Enabled=   0   'False
       Tab(1).Control(4)=   "txtDB(1)"
-      Tab(1).Control(4).Enabled=   0   'False
       Tab(1).Control(5)=   "Label10"
-      Tab(1).Control(5).Enabled=   0   'False
       Tab(1).Control(6)=   "Label8"
-      Tab(1).Control(6).Enabled=   0   'False
       Tab(1).Control(7)=   "Label6"
-      Tab(1).Control(7).Enabled=   0   'False
       Tab(1).Control(8)=   "Label5"
-      Tab(1).Control(8).Enabled=   0   'False
       Tab(1).Control(9)=   "Label4"
-      Tab(1).Control(9).Enabled=   0   'False
       Tab(1).ControlCount=   10
       Begin VB.TextBox txtTimestamp 
          Height          =   270
