@@ -15,7 +15,20 @@ Begin VB.Form DataSendFrm
    ScaleHeight     =   6750
    ScaleWidth      =   6450
    StartUpPosition =   2  '屏幕中心
+   Begin VB.Timer GPSData_timer 
+      Enabled         =   0   'False
+      Interval        =   1000
+      Left            =   3360
+      Top             =   5880
+   End
+   Begin VB.Timer result_table_timer 
+      Enabled         =   0   'False
+      Interval        =   60000
+      Left            =   3960
+      Top             =   5880
+   End
    Begin MSWinsockLib.Winsock sock 
+      Index           =   0
       Left            =   5160
       Top             =   5880
       _ExtentX        =   741
@@ -82,14 +95,14 @@ Begin VB.Form DataSendFrm
    End
    Begin VB.Timer Timer1 
       Interval        =   1000
-      Left            =   6360
+      Left            =   4560
       Top             =   5880
    End
    Begin MSComctlLib.StatusBar statusBar 
       Align           =   2  'Align Bottom
       Height          =   375
       Left            =   0
-      TabIndex        =   1
+      TabIndex        =   0
       Top             =   6375
       Width           =   6450
       _ExtentX        =   11377
@@ -108,7 +121,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-4"
+            TextSave        =   "2009-7-5"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -117,11 +130,23 @@ Begin VB.Form DataSendFrm
          EndProperty
       EndProperty
    End
+   Begin RichTextLib.RichTextBox infoBox 
+      Height          =   5535
+      Left            =   0
+      TabIndex        =   1
+      Top             =   840
+      Width           =   6375
+      _ExtentX        =   11245
+      _ExtentY        =   9763
+      _Version        =   393217
+      ScrollBars      =   3
+      TextRTF         =   $"DataSendFrm.frx":8A2E
+   End
    Begin MSComctlLib.Toolbar toolBar 
       Align           =   1  'Align Top
       Height          =   855
       Left            =   0
-      TabIndex        =   0
+      TabIndex        =   2
       Top             =   0
       Width           =   6450
       _ExtentX        =   11377
@@ -182,19 +207,6 @@ Begin VB.Form DataSendFrm
          EndProperty
       EndProperty
    End
-   Begin RichTextLib.RichTextBox infoBox 
-      Height          =   5535
-      Left            =   0
-      TabIndex        =   2
-      Top             =   840
-      Width           =   6375
-      _ExtentX        =   11245
-      _ExtentY        =   9763
-      _Version        =   393217
-      Enabled         =   -1  'True
-      ScrollBars      =   3
-      TextRTF         =   $"DataSendFrm.frx":8A2E
-   End
 End
 Attribute VB_Name = "DataSendFrm"
 Attribute VB_GlobalNameSpace = False
@@ -202,9 +214,82 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+Dim result_table As Recordset
+Dim GPSData As Recordset
+Dim result_table_last As String
+Dim gpsdata_last As String
+
 
 Private Sub Form_Load()
+    Set result_table = New Recordset
+    Set GPSData = New Recordset
+    result_table_last = ""
+    gpsdata_last = ""
     statusBar.Panels(3).Text = Time
+    
+    result_table_timer.Enabled = False
+    GPSData_timer.Enabled = False
+    Timer1.Enabled = True
+    toolBar.Buttons(BTN_CONNECT).Enabled = True
+    toolBar.Buttons(BTN_DISCONN).Enabled = False
+    toolBar.Buttons(BTN_START).Enabled = False
+    toolBar.Buttons(BTN_STOP).Enabled = False
+End Sub
+
+Private Sub result_table_timer_Timer()
+    If sock(0).State <> sckConnected Then
+        Exit Sub
+    End If
+    If result_table Is Nothing Or result_table.State <> 1 Then
+EOFLOADA:
+        If result_table_last = "" Then
+            Call GetRecords(result_table, glConnA, _
+                    frmLogin.txtTableName(0), frmLogin.txtTimestamp(0))
+        Else
+            Call GetRecords(result_table, glConnA, _
+                    frmLogin.txtTableName(0), result_table_last)
+        End If
+    End If
+    If result_table.EOF Then
+        GoTo EOFLOADA
+    End If
+    Dim clip As String
+    result_table_last = result_table.Fields("measuretime")
+    clip = Trim(result_table.GetString(adClipString, 1, "','"))
+    clip = Left(clip, Len(clip) - 1)
+    clip = frmLogin.txtTableName(0) & ",'" & clip & "'"
+    infoBox.SelStart = glInfoTxtLen
+    infoBox.SelText = "发送:" & clip & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len("发送:" & clip & vbNewLine)
+    sock(0).SendData (clip)
+End Sub
+
+Private Sub GPSData_timer_Timer()
+    If sock(0).State <> sckConnected Then
+        Exit Sub
+    End If
+    If GPSData Is Nothing Or GPSData.State <> 1 Then
+EOFLOADB:
+        If gpsdata_last = "" Then
+            Call GetRecords(GPSData, glConnB, _
+                    frmLogin.txtTableName(1), frmLogin.txtTimestamp(1))
+        Else
+            Call GetRecords(GPSData, glConnB, _
+                    frmLogin.txtTableName(1), gpsdata_last)
+        End If
+    End If
+    If GPSData.EOF Then
+        GoTo EOFLOADB
+    End If
+    Dim clip As String
+    gpsdata_last = GPSData.Fields("measuretime")
+    clip = Trim(GPSData.GetString(adClipString, 1, "','"))
+    clip = Left(clip, Len(clip) - 1)
+    clip = frmLogin.txtTableName(1) & ",'" & clip & "'"
+    infoBox.SelStart = glInfoTxtLen
+    infoBox.SelText = "发送:" & clip & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len("发送:" & clip & vbNewLine)
+    sock(0).SendData (clip)
 End Sub
 
 Private Sub Timer1_Timer()
@@ -213,47 +298,86 @@ End Sub
 
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
-        Case "连接服务器"
+        Case BTN_CONNECT
             '远程主机名
             If optionsDialog.ipBox = "" Then
                 MsgBox "请配置服务器IP参数", vbOKOnly, "缺少参数"
+                Exit Sub
             End If
             If optionsDialog.portBox = "" Then
                 MsgBox "请配置服务器端口参数", vbOKOnly, "缺少参数"
+                Exit Sub
+            End If
+            If sock(0).State = sckOpen Then
+                sock(0).Close
+            End If
+            sock(0).RemoteHost = optionsDialog.ipBox
+            '网络端口
+            sock(0).RemotePort = optionsDialog.portBox
+            '发出连接命令
+            sock(0).Connect
+            
+            TimedInfoDialog.Timeout = 15
+            TimedInfoDialog.Start ("正在连接服务器...")
+            
+            If TimedInfoDialog.Success = False Then
+                statusBar.Panels(1) = SOCK_FAILURE
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = SOCK_FAILURE & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(SOCK_FAILURE & vbNewLine)
             End If
             
-            sock.RemoteHost = optionsDialog.ipBox
-            '网络端口
-            sock.RemotePort = optionsDialog.portBox
-            '发出连接命令
-            sock.Connect
-            
-        Case "断开服务器"
-            sock.Close
-        Case "开始传输"
-            If Not sock.State = sckConnected Then
+        Case BTN_DISCONN
+            result_table_timer.Enabled = False
+            GPSData_timer.Enabled = False
+            sock(0).Close
+            Call sock_Close(0)
+        Case BTN_START
+            If Not sock(0).State = sckConnected Then
                 MsgBox "连接已断开，请重新连接服务器！", vbOKOnly, "出错信息"
             Else
-                Dim i As Integer
-                For i = 0 To 5
-                    sock.SendData ("Hello! VB Winsock!")
-                    Sleep (1000)
-                Next i
-                
+                toolBar.Buttons(BTN_STOP).Enabled = True
+                toolBar.Buttons(BTN_START).Enabled = False
+                result_table_timer.Enabled = True
+                GPSData_timer.Enabled = True
             End If
-        Case "停止传输"
-        Case "参数配置"
+        Case BTN_STOP
+            toolBar.Buttons(BTN_STOP).Enabled = False
+            toolBar.Buttons(BTN_START).Enabled = True
+            result_table_timer.Enabled = False
+            GPSData_timer.Enabled = False
+        Case BTN_PREF
             optionsDialog.Show vbModal, DataSendFrm
-        Case "退出程序"
+        Case BTN_QUIT
             Unload Me
             End
     End Select
 End Sub
 
-Private Sub sock_Close()
-    MsgBox ("socket closed")
+Private Sub sock_Close(Index As Integer)
+    'MsgBox ("socket closed")
+    sock(Index).Close
+    statusBar.Panels(1).Text = SOCK_CLOSED
+    infoBox.SelStart = glInfoTxtLen
+    infoBox.SelText = SOCK_CLOSED & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len(SOCK_CLOSED & vbNewLine)
+    toolBar.Buttons(BTN_CONNECT).Enabled = True
+    toolBar.Buttons(BTN_DISCONN).Enabled = False
+    toolBar.Buttons(BTN_START).Enabled = False
+    toolBar.Buttons(BTN_STOP).Enabled = False
+    GPSData_timer.Enabled = False
+    result_table_timer.Enabled = False
 End Sub
 
-Private Sub sock_Connect()
-    MsgBox ("socket connected")
+Private Sub sock_Connect(Index As Integer)
+    'MsgBox ("socket connected")
+    TimedInfoDialog.Cancel
+    statusBar.Panels(1).Text = SOCK_CONNECTED
+    infoBox.SelStart = glInfoTxtLen
+    infoBox.SelText = SOCK_CONNECTED & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len(SOCK_CONNECTED & vbNewLine)
+    toolBar.Buttons(BTN_CONNECT).Enabled = False
+    toolBar.Buttons(BTN_DISCONN).Enabled = True
+    toolBar.Buttons(BTN_START).Enabled = True
+    toolBar.Buttons(BTN_STOP).Enabled = False
 End Sub

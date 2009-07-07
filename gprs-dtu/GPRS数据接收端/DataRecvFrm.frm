@@ -8,13 +8,21 @@ Begin VB.Form DataRecvFrm
    ClientHeight    =   7080
    ClientLeft      =   1575
    ClientTop       =   2145
-   ClientWidth     =   8460
+   ClientWidth     =   7545
    Icon            =   "DataRecvFrm.frx":0000
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   7080
-   ScaleWidth      =   8460
+   ScaleWidth      =   7545
    StartUpPosition =   2  '屏幕中心
+   Begin MSWinsockLib.Winsock Listener 
+      Left            =   2520
+      Top             =   6000
+      _ExtentX        =   741
+      _ExtentY        =   741
+      _Version        =   393216
+      LocalPort       =   56789
+   End
    Begin MSWinsockLib.Winsock Sock 
       Index           =   0
       Left            =   600
@@ -90,49 +98,21 @@ Begin VB.Form DataRecvFrm
    Begin VB.Frame Frame2 
       Caption         =   "状态信息"
       Height          =   5655
-      Left            =   2760
-      TabIndex        =   3
-      Top             =   960
-      Width           =   5655
-      Begin RichTextLib.RichTextBox infoBox 
-         Height          =   5295
-         Left            =   120
-         TabIndex        =   5
-         Top             =   240
-         Width           =   5415
-         _ExtentX        =   9551
-         _ExtentY        =   9340
-         _Version        =   393217
-         Enabled         =   -1  'True
-         ScrollBars      =   3
-         TextRTF         =   $"DataRecvFrm.frx":8A3A
-      End
-   End
-   Begin VB.Frame Frame1 
-      Caption         =   "发送端列表"
-      Height          =   5655
       Left            =   120
       TabIndex        =   2
       Top             =   960
-      Width           =   2535
-      Begin MSWinsockLib.Winsock Listener 
-         Left            =   480
-         Top             =   4440
-         _ExtentX        =   741
-         _ExtentY        =   741
-         _Version        =   393216
-      End
-      Begin MSComctlLib.TreeView clientList 
+      Width           =   7335
+      Begin RichTextLib.RichTextBox infoBox 
          Height          =   5295
          Left            =   120
-         TabIndex        =   4
+         TabIndex        =   3
          Top             =   240
-         Width           =   2295
-         _ExtentX        =   4048
+         Width           =   7095
+         _ExtentX        =   12515
          _ExtentY        =   9340
          _Version        =   393217
-         Style           =   7
-         Appearance      =   1
+         ScrollBars      =   3
+         TextRTF         =   $"DataRecvFrm.frx":8A3A
       End
    End
    Begin MSComctlLib.StatusBar statusBar 
@@ -141,22 +121,22 @@ Begin VB.Form DataRecvFrm
       Left            =   0
       TabIndex        =   1
       Top             =   6705
-      Width           =   8460
-      _ExtentX        =   14923
+      Width           =   7545
+      _ExtentX        =   13309
       _ExtentY        =   661
       _Version        =   393216
       BeginProperty Panels {8E3867A5-8586-11D1-B16A-00C0F0283628} 
          NumPanels       =   3
          BeginProperty Panel1 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             AutoSize        =   1
-            Object.Width           =   9737
+            Object.Width           =   8123
             Text            =   "状态信息"
             TextSave        =   "状态信息"
          EndProperty
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-4"
+            TextSave        =   "2009-7-5"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -171,10 +151,10 @@ Begin VB.Form DataRecvFrm
       Left            =   0
       TabIndex        =   0
       Top             =   0
-      Width           =   8460
-      _ExtentX        =   14923
+      Width           =   7545
+      _ExtentX        =   13309
       _ExtentY        =   1508
-      ButtonWidth     =   1455
+      ButtonWidth     =   2090
       ButtonHeight    =   1349
       Appearance      =   1
       ImageList       =   "imageBar"
@@ -184,16 +164,16 @@ Begin VB.Form DataRecvFrm
       BeginProperty Buttons {66833FE8-8583-11D1-B16A-00C0F0283628} 
          NumButtons      =   9
          BeginProperty Button1 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "连接网络"
-            Key             =   "连接网络"
-            Description     =   "连接网络"
+            Caption         =   "连接有线网络"
+            Key             =   "连接有线网络"
+            Description     =   "连接有线网络"
             Object.ToolTipText     =   "通过Modem拨号连接到互联网"
             ImageIndex      =   7
          EndProperty
          BeginProperty Button2 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "断开连接"
-            Key             =   "断开连接"
-            Description     =   "断开连接"
+            Caption         =   "断开有线网络"
+            Key             =   "断开有线网络"
+            Description     =   "断开有线网络"
             Object.ToolTipText     =   "断开网络连接"
             ImageIndex      =   6
          EndProperty
@@ -253,6 +233,10 @@ Private Sub Form_Load()
     On Error Resume Next
     ConnectState(0) = FREE
     ConnectState(1) = FREE
+    toolBar.Buttons(BTN_CONNECT).Enabled = True
+    toolBar.Buttons(BTN_DISCONN).Enabled = False
+    toolBar.Buttons(BTN_START).Enabled = False
+    toolBar.Buttons(BTN_STOP).Enabled = False
 End Sub
 
 Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
@@ -290,19 +274,36 @@ End Sub
 
 Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     Dim dx As String
+    Dim pos As Long
+    Dim tablename As String
     Sock(Index).GetData dx, vbString
-    AppendInfoLine (dx)
+    Dim sql As String
+    AppendInfoLine (dx & str(Len(dx)))
+    pos = InStr(dx, ",")
+    tablename = ""
+    If pos > 0 Then
+        tablename = Left(dx, pos - 1)
+    End If
+    If tablename = frmLogin.txtTableName(1) Then
+        ' GPSData
+        sql = "insert into " & frmLogin.txtTableName(1) & " values (" & Right(dx, Len(dx) - pos) & ")"
+        glConnB.Execute sql
+    Else
+        ' result_table
+        sql = "insert into " & frmLogin.txtTableName(0) & " values (" & Right(dx, Len(dx) - pos) & ")"
+        glConnA.Execute sql
+    End If
 End Sub
 
 Public Function FindFreeSocket()
-    Dim SockCount, i As Integer
+    Dim SockCount, I As Integer
     SockCount = UBound(ConnectState)
-    For i = 0 To SockCount
-        If ConnectState(i) = FREE Then
-            FindFreeSocket = i
+    For I = 0 To SockCount
+        If ConnectState(I) = FREE Then
+            FindFreeSocket = I
             Exit Function
         End If
-    Next i
+    Next I
     ReDim Preserve ConnectState(0 To SockCount + 1)
     FindFreeSocket = UBound(ConnectState)
 End Function
@@ -314,13 +315,20 @@ End Sub
 
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
-        Case "连接网络"
+        Case BTN_CONNECT
             'phoneDialFrm.Show vbModal
-            
-        Case "断开连接"
+            toolBar.Buttons(BTN_CONNECT).Enabled = False
+            toolBar.Buttons(BTN_DISCONN).Enabled = True
+            toolBar.Buttons(BTN_START).Enabled = True
+            toolBar.Buttons(BTN_STOP).Enabled = False
+        Case BTN_DISCONN
             Dim temp As Long
             temp = RasHangUp(hRasConn)
-        Case "开始接收"
+            toolBar.Buttons(BTN_CONNECT).Enabled = True
+            toolBar.Buttons(BTN_DISCONN).Enabled = False
+            toolBar.Buttons(BTN_START).Enabled = False
+            toolBar.Buttons(BTN_STOP).Enabled = False
+        Case BTN_START
             '设置本机连接端口的localport属性的内容
             '请注意！必须是整体值
             ReDim Preserve ConnectState(0 To 1)
@@ -335,17 +343,38 @@ LoopTag:
             Listener.LocalPort = portNum
             '将本机连接端口设置为监听模式
             Listener.Listen
-        Case "停止接收"
-            Dim SockCount, i As Integer
-            SockCount = UBound(ConnectState)
-            For i = 0 To SockCount
-                If Sock(i).State <> sckClosed Then
-                    Sock(i).Close
+            If Listener.State = sckListening Then
+                statusBar.Panels(1).Text = LISTEN_SUCCESS
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = LISTEN_SUCCESS & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(LISTEN_SUCCESS & vbNewLine)
+                toolBar.Buttons(BTN_START).Enabled = False
+                toolBar.Buttons(BTN_STOP).Enabled = True
+            Else
+                statusBar.Panels(1).Text = LISTEN_FAILURE
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = LISTEN_FAILURE + vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(LISTEN_FAILURE & vbNewLine)
+                toolBar.Buttons(BTN_START).Enabled = True
+                toolBar.Buttons(BTN_STOP).Enabled = False
+            End If
+        Case BTN_STOP
+            Dim SockCount, I As Integer
+            SockCount = Sock.UBound
+            For I = 0 To SockCount
+                If Sock(I).State <> sckClosed Then
+                    Sock(I).Close
                 End If
-            Next i
-        Case "参数配置"
-            
-        Case "退出程序"
+            Next I
+            statusBar.Panels(1).Text = LISTEN_CLOSED
+            infoBox.SelStart = glInfoTxtLen
+            infoBox.SelText = LISTEN_CLOSED & vbNewLine
+            glInfoTxtLen = glInfoTxtLen + Len(LISTEN_CLOSED & vbNewLine)
+            toolBar.Buttons(BTN_START).Enabled = True
+            toolBar.Buttons(BTN_STOP).Enabled = False
+        Case BTN_PREF
+            MsgBox "Not Implemented", vbOKOnly, "N/A"
+        Case BTN_QUIT
             Unload Me
             End
     End Select
@@ -357,5 +386,5 @@ Public Sub AppendInfoLine(line As String)
         .SelStart = glInfoTxtLen
         .SelText = line & vbNewLine
     End With
-    glInfoTxtLen = glInfoTxtLen + Len(line)
+    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
 End Sub
