@@ -32,4 +32,4 @@ Global Const BTN_STOP = "停止接收"
 Global Const BTN_PREF = "参数配置"
 Global Const BTN_QUIT = "退出程序"
 
-
+Global Const NAME_MODEM = "MODEM_PHONE"
