@@ -112,17 +112,17 @@ Private Sub Form_Load()
     cmbModem.Clear
     
     On Error Resume Next
-    Dim strComputer As String
+
     strComputer = "."
-    
     Set objWMIService = GetObject("winmgmts:" _
         & "{impersonationLevel=impersonate}!\\" & strComputer & "\root\cimv2")
-    
+
     Set colItems = objWMIService.ExecQuery("Select * from Win32_POTSModem")
-    
-    For Each objItem In colItems
-        cmbModem.Text = objItem.FriendlyName
-        cmbModem.AddItem objItem.FriendlyName
+
+    For Each objitem In colItems
+        cmbModem.Text = objitem.Name
+        cmbModem.AddItem objitem.Name
+        Next
         
 End Sub
 
