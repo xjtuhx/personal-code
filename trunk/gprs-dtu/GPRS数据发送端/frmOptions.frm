@@ -22,7 +22,7 @@ Begin VB.Form optionsDialog
       _ExtentX        =   10239
       _ExtentY        =   5953
       _Version        =   393216
-      Tabs            =   2
+      Tabs            =   1
       TabsPerRow      =   2
       TabHeight       =   520
       TabCaption(0)   =   "网络参数配置"
@@ -41,40 +41,6 @@ Begin VB.Form optionsDialog
       Tab(0).Control(5)=   "portBox"
       Tab(0).Control(5).Enabled=   0   'False
       Tab(0).ControlCount=   6
-      TabCaption(1)   =   "数据库参数配置"
-      TabPicture(1)   =   "frmOptions.frx":001C
-      Tab(1).ControlEnabled=   0   'False
-      Tab(1).Control(0)=   "Label4"
-      Tab(1).Control(1)=   "Label5"
-      Tab(1).Control(2)=   "Label6"
-      Tab(1).Control(3)=   "dbFileBox"
-      Tab(1).Control(4)=   "dbUsernameBox"
-      Tab(1).Control(5)=   "dbPasswdBox"
-      Tab(1).ControlCount=   6
-      Begin VB.TextBox dbPasswdBox 
-         Height          =   270
-         Left            =   -72720
-         TabIndex        =   14
-         Text            =   "请输入数据库密码"
-         Top             =   2040
-         Width           =   3255
-      End
-      Begin VB.TextBox dbUsernameBox 
-         Height          =   270
-         Left            =   -72720
-         TabIndex        =   13
-         Text            =   "请输入数据库用户名"
-         Top             =   1440
-         Width           =   3255
-      End
-      Begin VB.TextBox dbFileBox 
-         Height          =   270
-         Left            =   -72720
-         TabIndex        =   12
-         Text            =   "点击打开数据库"
-         Top             =   840
-         Width           =   3255
-      End
       Begin VB.TextBox portBox 
          Height          =   270
          Left            =   2280
@@ -99,30 +65,6 @@ Begin VB.Form optionsDialog
          ToolTipText     =   "用于在接收端区分不同发送端的名字，可以任意填写。"
          Top             =   840
          Width           =   3255
-      End
-      Begin VB.Label Label6 
-         Caption         =   "数据库密码："
-         Height          =   255
-         Left            =   -74160
-         TabIndex        =   11
-         Top             =   2040
-         Width           =   1215
-      End
-      Begin VB.Label Label5 
-         Caption         =   "数据库用户名："
-         Height          =   255
-         Left            =   -74340
-         TabIndex        =   10
-         Top             =   1440
-         Width           =   1335
-      End
-      Begin VB.Label Label4 
-         Caption         =   "数据库文件位置："
-         Height          =   255
-         Left            =   -74520
-         TabIndex        =   9
-         Top             =   840
-         Width           =   1455
       End
       Begin VB.Label Label3 
          Caption         =   "数据接收端端口号："

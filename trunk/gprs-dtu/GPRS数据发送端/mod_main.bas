@@ -8,9 +8,6 @@ Option Explicit
 Global glConnA As ADODB.Connection     '全局数据库连接
 Global glConnB As ADODB.Connection
 
-Global glCenterDial As String   '全局数据中心拨号网络
-Global glCenterIP As String     '全局数据中心 IP 地址
-
 Global glConnStringA As String '全局连接字符串
 Global glConnStringB As String
 
@@ -22,10 +19,6 @@ Sub Main()
     Set glConnA = New Connection
     Set glConnB = New Connection
     
-    '________________________ 读取数据中心信息
-    'glCenterDial = GetProfileString(App.Path & "\control.ini", "数据中心信息", "拨号网络")
-    'glCenterIP = GetProfileString(App.Path & "\control.ini", "数据中心信息", "数据中心IP")
-    'glLocalIP = GetProfileString(App.Path & "\control.ini", "局域网信息", "IP")
     '________________________ 调用并显示主窗体
     Load DataSendFrm
     SetFormNoClose DataSendFrm
@@ -49,8 +42,5 @@ Sub Main()
     DataSendFrm.Show
     DataSendFrm.Enabled = True
     DataSendFrm.SetFocus
-
-
-    '________________________ 控制服务状态
 
 End Sub

@@ -9,12 +9,19 @@ Begin VB.Form DataSendFrm
    ClientLeft      =   45
    ClientTop       =   435
    ClientWidth     =   6450
+   Icon            =   "DataSendFrm.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   6750
    ScaleWidth      =   6450
    StartUpPosition =   2  '屏幕中心
+   Begin VB.Timer ppp_status_timer 
+      Enabled         =   0   'False
+      Interval        =   1000
+      Left            =   2760
+      Top             =   5880
+   End
    Begin VB.Timer GPSData_timer 
       Enabled         =   0   'False
       Interval        =   1000
@@ -48,47 +55,47 @@ Begin VB.Form DataSendFrm
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
          NumListImages   =   11
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":0000
+            Picture         =   "DataSendFrm.frx":0CCA
             Key             =   ""
          EndProperty
          BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":0C52
+            Picture         =   "DataSendFrm.frx":191C
             Key             =   ""
          EndProperty
          BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":18A4
+            Picture         =   "DataSendFrm.frx":256E
             Key             =   ""
          EndProperty
          BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":24F6
+            Picture         =   "DataSendFrm.frx":31C0
             Key             =   ""
          EndProperty
          BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":3148
+            Picture         =   "DataSendFrm.frx":3E12
             Key             =   ""
          EndProperty
          BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":3D9A
+            Picture         =   "DataSendFrm.frx":4A64
             Key             =   ""
          EndProperty
          BeginProperty ListImage7 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":49EC
+            Picture         =   "DataSendFrm.frx":56B6
             Key             =   ""
          EndProperty
          BeginProperty ListImage8 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":56C6
+            Picture         =   "DataSendFrm.frx":6390
             Key             =   ""
          EndProperty
          BeginProperty ListImage9 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":63A0
+            Picture         =   "DataSendFrm.frx":706A
             Key             =   ""
          EndProperty
          BeginProperty ListImage10 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":707A
+            Picture         =   "DataSendFrm.frx":7D44
             Key             =   ""
          EndProperty
          BeginProperty ListImage11 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "DataSendFrm.frx":7D54
+            Picture         =   "DataSendFrm.frx":8A1E
             Key             =   ""
          EndProperty
       EndProperty
@@ -121,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-5"
+            TextSave        =   "2009-7-7"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -140,7 +147,7 @@ Begin VB.Form DataSendFrm
       _ExtentY        =   9763
       _Version        =   393217
       ScrollBars      =   3
-      TextRTF         =   $"DataSendFrm.frx":8A2E
+      TextRTF         =   $"DataSendFrm.frx":96F8
    End
    Begin MSComctlLib.Toolbar toolBar 
       Align           =   1  'Align Top
@@ -191,10 +198,10 @@ Begin VB.Form DataSendFrm
             Style           =   3
          EndProperty
          BeginProperty Button7 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "参数配置"
-            Key             =   "参数配置"
-            Description     =   "参数配置"
-            ImageIndex      =   10
+            Caption         =   "关于"
+            Key             =   "关于"
+            Description     =   "关于"
+            ImageIndex      =   3
          EndProperty
          BeginProperty Button8 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Style           =   3
@@ -230,10 +237,27 @@ Private Sub Form_Load()
     result_table_timer.Enabled = False
     GPSData_timer.Enabled = False
     Timer1.Enabled = True
+    
+    ppp_status_timer.Enabled = False
+    
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
     toolBar.Buttons(BTN_START).Enabled = False
     toolBar.Buttons(BTN_STOP).Enabled = False
+End Sub
+
+Private Sub ppp_status_timer_Timer()
+    Dim line As String
+    Dim ms As Long
+    Dim rx As Long
+    Dim tx As Long
+    ms = Get_PPP_Duration("vpn") / 1000
+    tx = Get_PPP_TXByte("vpn") / 1024
+    rx = Get_PPP_RXByte("vpn") / 1024
+    line = "连接持续时间: " & CStr(ms) & " 秒，已传输 " & CStr(tx) & " KB字节，已接收 " & _
+        CStr(rx) & " KB字节。"
+    
+    statusBar.Panels(1) = line
 End Sub
 
 Private Sub result_table_timer_Timer()
@@ -299,32 +323,92 @@ End Sub
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
         Case BTN_CONNECT
-            '远程主机名
-            If optionsDialog.ipBox = "" Then
-                MsgBox "请配置服务器IP参数", vbOKOnly, "缺少参数"
-                Exit Sub
-            End If
-            If optionsDialog.portBox = "" Then
-                MsgBox "请配置服务器端口参数", vbOKOnly, "缺少参数"
-                Exit Sub
-            End If
-            If sock(0).State = sckOpen Then
-                sock(0).Close
-            End If
-            sock(0).RemoteHost = optionsDialog.ipBox
-            '网络端口
-            sock(0).RemotePort = optionsDialog.portBox
-            '发出连接命令
-            sock(0).Connect
-            
-            TimedInfoDialog.Timeout = 15
-            TimedInfoDialog.Start ("正在连接服务器...")
-            
-            If TimedInfoDialog.Success = False Then
-                statusBar.Panels(1) = SOCK_FAILURE
+            Dim ret As Boolean
+            Dim line As String
+            'ret = Exists_PPP_Connection(NAME_CDMA1X)
+            ret = Exists_PPP_Connection("vpn")
+            If ret = False Then
+                '新建一个拨号连接
+                line = "拨号连接不存在，正在新建拨号连接..."
                 infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = SOCK_FAILURE & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(SOCK_FAILURE & vbNewLine)
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                
+                'ret = Create_PPP_Connection(NAME_CDMA1X, RASET_Phone, VS_Default, "#777", _
+                '        "ctnet@mycdma.cn", "vnet.mobi", "Wireless Station USB Modem", RASDT_Modem, _
+                '        False, "", False, "", "", False, "86", "021")
+                
+                ret = Create_PPP_Connection("vpn", RASET_Vpn, VS_Default, "10.11.10.37", _
+                        "gprs", "gprs123", vbNullString, RASDT_Vpn, _
+                        False, "", False, "", "", False, "86", "021")
+                
+                If ret = True Then
+                    line = "连接创建成功！"
+                    infoBox.SelStart = glInfoTxtLen
+                    infoBox.SelText = line & vbNewLine
+                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                Else
+                    line = "连接创建失败！请重试！"
+                    infoBox.SelStart = glInfoTxtLen
+                    infoBox.SelText = line & vbNewLine
+                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                    Exit Sub
+                End If
+            End If
+            
+            ret = Is_PPP_Connecting("vpn")
+            If ret = False Then
+                line = "正在尝试拨号..."
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                'ret = Dial_PPP_Connection(NAME_CDMA1X)
+                ret = Dial_PPP_Connection("vpn")
+            End If
+            
+            If ret = True Then
+                
+                '启动连接状态计时器
+                ppp_status_timer.Enabled = True
+                
+                line = "拨号连接建立成功！"
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                
+                'toolBar.Buttons(BTN_CONNECT).Enabled = False
+                toolBar.Buttons(BTN_DISCONN).Enabled = True
+                
+                serverParamDialog.Show vbModal
+                If serverParamDialog.Cancelled = False Then
+                    If sock(0).State = sckOpen Then
+                        sock(0).Close
+                    End If
+                    sock(0).RemoteHost = serverParamDialog.ipBox
+                    '网络端口
+                    sock(0).RemotePort = serverParamDialog.portBox
+                    '发出连接命令
+                    sock(0).Connect
+                    
+                    TimedInfoDialog.Timeout = 15
+                    TimedInfoDialog.Start ("正在连接服务器 " & serverParamDialog.ipBox & " ...")
+                    
+                    If TimedInfoDialog.SUCCESS = False Then
+                        line = SOCK_FAILURE & "服务器地址：" & serverParamDialog.ipBox
+                        infoBox.SelStart = glInfoTxtLen
+                        infoBox.SelText = line & vbNewLine
+                        glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                        Exit Sub
+                    End If
+                End If
+            Else
+                
+                ppp_status_timer.Enabled = False
+                
+                line = "拨号失败，请重试！"
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
             End If
             
         Case BTN_DISCONN
@@ -332,6 +416,14 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             GPSData_timer.Enabled = False
             sock(0).Close
             Call sock_Close(0)
+            'ret = Disconnect_PPP_Connection(NAME_CDMA1X)
+            ret = Disconnect_PPP_Connection("vpn")
+            If ret = True Then
+                statusBar.Panels(1) = "断开连接成功！"
+                ppp_status_timer.Enabled = False
+            Else
+                statusBar.Panels(1) = "断开连接失败！"
+            End If
         Case BTN_START
             If Not sock(0).State = sckConnected Then
                 MsgBox "连接已断开，请重新连接服务器！", vbOKOnly, "出错信息"
@@ -347,7 +439,8 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             result_table_timer.Enabled = False
             GPSData_timer.Enabled = False
         Case BTN_PREF
-            optionsDialog.Show vbModal, DataSendFrm
+            'optionsDialog.Show vbModal, DataSendFrm
+            frmAbout.Show 1
         Case BTN_QUIT
             Unload Me
             End
@@ -357,10 +450,11 @@ End Sub
 Private Sub sock_Close(Index As Integer)
     'MsgBox ("socket closed")
     sock(Index).Close
-    statusBar.Panels(1).Text = SOCK_CLOSED
+    Dim line As String
+    line = SOCK_CLOSED & "服务器地址：" & serverParamDialog.ipBox
     infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = SOCK_CLOSED & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len(SOCK_CLOSED & vbNewLine)
+    infoBox.SelText = line & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
     toolBar.Buttons(BTN_START).Enabled = False
@@ -372,10 +466,11 @@ End Sub
 Private Sub sock_Connect(Index As Integer)
     'MsgBox ("socket connected")
     TimedInfoDialog.Cancel
-    statusBar.Panels(1).Text = SOCK_CONNECTED
+    Dim line As String
+    line = SOCK_CONNECTED & "服务器地址：" & serverParamDialog.ipBox
     infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = SOCK_CONNECTED & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len(SOCK_CONNECTED & vbNewLine)
+    infoBox.SelText = line & vbNewLine
+    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
     toolBar.Buttons(BTN_CONNECT).Enabled = False
     toolBar.Buttons(BTN_DISCONN).Enabled = True
     toolBar.Buttons(BTN_START).Enabled = True

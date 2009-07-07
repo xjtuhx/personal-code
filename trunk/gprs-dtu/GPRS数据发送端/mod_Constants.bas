@@ -29,5 +29,7 @@ Global Const BTN_CONNECT = "连接服务器"
 Global Const BTN_DISCONN = "断开服务器"
 Global Const BTN_START = "开始传输"
 Global Const BTN_STOP = "停止传输"
-Global Const BTN_PREF = "参数配置"
+Global Const BTN_PREF = "关于"
 Global Const BTN_QUIT = "退出程序"
+
+Global Const NAME_CDMA1X = "CDMA1X"
