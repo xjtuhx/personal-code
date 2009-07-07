@@ -95,22 +95,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-Option Explicit
 Public IfDialedUp As Boolean
 Public Cancelled As Boolean
-
-Const REG_SZ As Long = 1
-Const REG_DWORD As Long = 4
-Const REG_BINARY As Long = 3
-Const HKEY_LOCAL_MACHINE = &H80000002
-Const KEY_ALL_ACCESS = &H3F
-Const REG_OPTION_NON_VOLATILE = 0
-Private Declare Function RegCloseKey Lib "advapi32.dll" (ByVal hKey As Long) As Long
-Private Declare Function RegOpenKeyEx Lib "advapi32.dll" Alias "RegOpenKeyExA" (ByVal hKey As Long, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, phkResult As Long) As Long
-Private Declare Function RegQueryValueExString Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, ByVal lpData As String, lpcbData As Long) As Long
-Private Declare Function RegQueryValueExLong Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, lpData As Long, lpcbData As Long) As Long
-Private Declare Function RegQueryValueExNULL Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, ByVal lpData As Long, lpcbData As Long) As Long
 
 Private Sub CancelButton_Click()
     IfDialedUp = False
@@ -125,16 +111,19 @@ Private Sub Form_Load()
     Cancelled = True
     cmbModem.Clear
     
-    Dim ret As Variant
-    Dim i As Integer
-    For i = 0 To 9
-        QueryValue "System\CurrentControlSet\Services\Class\Modem\000" & i, "DriverDesc", HKEY_LOCAL_MACHINE, ret
-        If Len(ret) > 0 Then
-            ret = Left(ret, Len(ret) - 1)
-            cmbModem.Text = ret
-            cmbModem.AddItem ret
-        End If
-        Next i
+    On Error Resume Next
+    Dim strComputer As String
+    strComputer = "."
+    
+    Set objWMIService = GetObject("winmgmts:" _
+        & "{impersonationLevel=impersonate}!\\" & strComputer & "\root\cimv2")
+    
+    Set colItems = objWMIService.ExecQuery("Select * from Win32_POTSModem")
+    
+    For Each objItem In colItems
+        cmbModem.Text = objItem.FriendlyName
+        cmbModem.AddItem objItem.FriendlyName
+        
 End Sub
 
 Private Sub OKButton_Click()
@@ -146,26 +135,3 @@ Private Sub OKButton_Click()
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_USER, xorPWD(Trim(txtPhoneUser))
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_PASS, xorPWD(Trim(txtPhonePass))
 End Sub
-
-Public Function QueryValue(sKeyName As String, sValueName As String, lPredefinedKey As Long, zm As Variant) As Variant
-    Dim lRetVal As Long
-    Dim hKey As Long
-    Dim vValue As Variant
-    lRetVal = RegOpenKeyEx(lPredefinedKey, sKeyName, 0, KEY_ALL_ACCESS, hKey)
-    lRetVal = QueryValueEx(hKey, sValueName, vValue)
-    QueryValue = vValue
-    zm = vValue
-    RegCloseKey (hKey)
-End Function
-
-Private Function QueryValueEx(ByVal lhKey As Long, ByVal szValueName As String, vValue As Variant) As Long
-    Dim cch As Long
-    Dim lrc As Long
-    Dim lType As Long
-    Dim lValue As Long
-    Dim sValue As String
-   lrc = RegQueryValueExNULL(lhKey, szValueName, 0&, lType, 0&, cch)
-   sValue = String(cch, 0)
-   lrc = RegQueryValueExString(lhKey, szValueName, 0&, lType, sValue, cch)
-   vValue = Left$(sValue, cch)
-End Function

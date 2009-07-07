@@ -653,6 +653,7 @@ Public Function Exists_PPP_Connection(ByVal lpszEntryName As String)
         If RasGetEntryDialParams(vbNullString, lprasdialparams, lpfPassword) <> 0 Then
             Exists_PPP_Connection = False
         End If
+    End If
 End Function
 
 Public Function Dial_PPP_Connection(ByVal lpszEntryName As String) As Boolean
