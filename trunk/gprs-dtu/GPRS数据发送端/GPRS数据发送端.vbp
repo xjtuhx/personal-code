@@ -18,6 +18,7 @@ Module=mod_Tools; mod_Tools.bas
 Module=mod_DataBase; mod_DataBase.bas
 Module=mod_constants; mod_Constants.bas
 Form=frmDBLogon.frm
+Form=TimedInfoDialog.frm
 IconForm="DataSendFrm"
 Startup="Sub Main"
 HelpFile=""

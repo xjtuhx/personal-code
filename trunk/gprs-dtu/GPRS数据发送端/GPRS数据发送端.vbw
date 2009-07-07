@@ -1,9 +1,10 @@
-DataSendFrm = 15, 196, 924, 822, , 36, 15, 945, 641, C
-optionsDialog = 56, 253, 955, 821, , 44, 58, 854, 684, C
+DataSendFrm = 20, 147, 1017, 773, , 36, 15, 945, 641, C
+optionsDialog = 56, 253, 955, 821, , 99, 214, 909, 840, C
 mod_Connection = 198, 261, 984, 887, C
 mod_Main = 5, 89, 914, 715, C
-mod_ReadINI = 2, 143, 935, 711, 
-mod_Tools = 44, 58, 977, 626, 
-mod_DataBase = 17, 183, 861, 809, 
-mod_constants = 176, 232, 873, 858, 
-frmLogin = 132, 178, 1031, 746, , 0, 0, 0, 0, C
+mod_ReadINI = 2, 143, 935, 711, C
+mod_Tools = 63, 338, 996, 906, C
+mod_DataBase = 33, 2, 877, 628, 
+mod_constants = 176, 232, 873, 858, C
+frmLogin = 26, 126, 1030, 694, , 172, 263, 982, 889, C
+TimedInfoDialog = 44, 58, 854, 684, , 63, 146, 873, 772, C
