@@ -111,6 +111,7 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   12515
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":8A3A
       End
@@ -136,7 +137,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-5"
+            TextSave        =   "2009-7-7"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -243,7 +244,6 @@ Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
     Dim SockIndex As Integer
     Dim SockNum As Integer
     On Error Resume Next
-    'Form1.Print requestID & "连接请求"
     '查找连接的用户数
     SockNum = UBound(ConnectState)
     If SockNum > 14 Then
@@ -275,16 +275,16 @@ End Sub
 Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     Dim dx As String
     Dim pos As Long
-    Dim tablename As String
+    Dim tableName As String
     Sock(Index).GetData dx, vbString
     Dim sql As String
     AppendInfoLine (dx & str(Len(dx)))
     pos = InStr(dx, ",")
-    tablename = ""
+    tableName = ""
     If pos > 0 Then
-        tablename = Left(dx, pos - 1)
+        tableName = Left(dx, pos - 1)
     End If
-    If tablename = frmLogin.txtTableName(1) Then
+    If tableName = frmLogin.txtTableName(1) Then
         ' GPSData
         sql = "insert into " & frmLogin.txtTableName(1) & " values (" & Right(dx, Len(dx) - pos) & ")"
         glConnB.Execute sql
@@ -296,14 +296,14 @@ Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
 End Sub
 
 Public Function FindFreeSocket()
-    Dim SockCount, I As Integer
+    Dim SockCount, i As Integer
     SockCount = UBound(ConnectState)
-    For I = 0 To SockCount
-        If ConnectState(I) = FREE Then
-            FindFreeSocket = I
+    For i = 0 To SockCount
+        If ConnectState(i) = FREE Then
+            FindFreeSocket = i
             Exit Function
         End If
-    Next I
+    Next i
     ReDim Preserve ConnectState(0 To SockCount + 1)
     FindFreeSocket = UBound(ConnectState)
 End Function
@@ -316,6 +316,24 @@ End Sub
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
         Case BTN_CONNECT
+            Dim ret As Boolean
+            Dim line As String
+            
+            '判断拨号连接是否存在
+            ret = Exists_PPP_Connection(NAME_MODEM)
+            
+            If ret = False Then
+                '创建一个新的拨号连接
+                line = "拨号连接不存在，正在新建拨号连接..."
+                infoBox.SelStart = glInfoTxtLen
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                
+                phoneDialFrm.Show vbModal
+                
+                'ret = create_ppp_connection(name_modem, RASET_Phone, VS_Default, phoneDialfrm.txtPhoneNumber, _
+                '        phonedialfrm.txtPhoneUser, phonedialfrm.txtPhonePass,
+            End If
             'phoneDialFrm.Show vbModal
             toolBar.Buttons(BTN_CONNECT).Enabled = False
             toolBar.Buttons(BTN_DISCONN).Enabled = True
@@ -345,9 +363,10 @@ LoopTag:
             Listener.Listen
             If Listener.State = sckListening Then
                 statusBar.Panels(1).Text = LISTEN_SUCCESS
+                line = LISTEN_SUCCESS & "侦听地址：" & Listener.LocalIP & " 侦听端口：" & Listener.LocalPort
                 infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = LISTEN_SUCCESS & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(LISTEN_SUCCESS & vbNewLine)
+                infoBox.SelText = line & vbNewLine
+                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
                 toolBar.Buttons(BTN_START).Enabled = False
                 toolBar.Buttons(BTN_STOP).Enabled = True
             Else
@@ -359,13 +378,13 @@ LoopTag:
                 toolBar.Buttons(BTN_STOP).Enabled = False
             End If
         Case BTN_STOP
-            Dim SockCount, I As Integer
+            Dim SockCount, i As Integer
             SockCount = Sock.UBound
-            For I = 0 To SockCount
-                If Sock(I).State <> sckClosed Then
-                    Sock(I).Close
+            For i = 0 To SockCount
+                If Sock(i).State <> sckClosed Then
+                    Sock(i).Close
                 End If
-            Next I
+            Next i
             statusBar.Panels(1).Text = LISTEN_CLOSED
             infoBox.SelStart = glInfoTxtLen
             infoBox.SelText = LISTEN_CLOSED & vbNewLine

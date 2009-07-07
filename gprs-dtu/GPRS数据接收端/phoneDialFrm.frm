@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form phoneDialFrm 
    BorderStyle     =   3  'Fixed Dialog
    Caption         =   "拨号设置"
-   ClientHeight    =   2505
+   ClientHeight    =   2955
    ClientLeft      =   2760
    ClientTop       =   3750
    ClientWidth     =   3630
@@ -10,9 +10,16 @@ Begin VB.Form phoneDialFrm
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   2505
+   ScaleHeight     =   2955
    ScaleWidth      =   3630
    ShowInTaskbar   =   0   'False
+   Begin VB.ComboBox cmbModem 
+      Height          =   300
+      Left            =   1560
+      TabIndex        =   9
+      Top             =   1800
+      Width           =   1695
+   End
    Begin VB.TextBox txtPhonePass 
       Height          =   270
       Left            =   1560
@@ -39,16 +46,24 @@ Begin VB.Form phoneDialFrm
       Height          =   375
       Left            =   2040
       TabIndex        =   1
-      Top             =   1920
+      Top             =   2400
       Width           =   1215
    End
    Begin VB.CommandButton OKButton 
-      Caption         =   "连接！"
+      Caption         =   "确定"
       Height          =   375
       Left            =   360
       TabIndex        =   0
-      Top             =   1920
+      Top             =   2400
       Width           =   1215
+   End
+   Begin VB.Label Label4 
+      Caption         =   "拨号设备："
+      Height          =   255
+      Left            =   360
+      TabIndex        =   8
+      Top             =   1800
+      Width           =   975
    End
    Begin VB.Label Label3 
       Caption         =   "密码："
@@ -83,9 +98,23 @@ Attribute VB_Exposed = False
 
 Option Explicit
 Public IfDialedUp As Boolean
+Public Cancelled As Boolean
+
+Const REG_SZ As Long = 1
+Const REG_DWORD As Long = 4
+Const REG_BINARY As Long = 3
+Const HKEY_LOCAL_MACHINE = &H80000002
+Const KEY_ALL_ACCESS = &H3F
+Const REG_OPTION_NON_VOLATILE = 0
+Private Declare Function RegCloseKey Lib "advapi32.dll" (ByVal hKey As Long) As Long
+Private Declare Function RegOpenKeyEx Lib "advapi32.dll" Alias "RegOpenKeyExA" (ByVal hKey As Long, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, phkResult As Long) As Long
+Private Declare Function RegQueryValueExString Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, ByVal lpData As String, lpcbData As Long) As Long
+Private Declare Function RegQueryValueExLong Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, lpData As Long, lpcbData As Long) As Long
+Private Declare Function RegQueryValueExNULL Lib "advapi32.dll" Alias "RegQueryValueExA" (ByVal hKey As Long, ByVal lpValueName As String, ByVal lpReserved As Long, lpType As Long, ByVal lpData As Long, lpcbData As Long) As Long
 
 Private Sub CancelButton_Click()
     IfDialedUp = False
+    Cancelled = True
     Me.Hide
 End Sub
 
@@ -93,34 +122,50 @@ Private Sub Form_Load()
     txtPhoneNumber = GetProfileString(App.Path & "\Control.ini", MODEM_INFO, MODEM_NUMBER)
     txtPhoneUser = xorPWD(GetProfileString(App.Path & "\Control.ini", MODEM_INFO, MODEM_USER))
     txtPhonePass = xorPWD(GetProfileString(App.Path & "\Control.ini", MODEM_INFO, MODEM_PASS))
+    Cancelled = True
+    cmbModem.Clear
+    
+    Dim ret As Variant
+    Dim i As Integer
+    For i = 0 To 9
+        QueryValue "System\CurrentControlSet\Services\Class\Modem\000" & i, "DriverDesc", HKEY_LOCAL_MACHINE, ret
+        If Len(ret) > 0 Then
+            ret = Left(ret, Len(ret) - 1)
+            cmbModem.Text = ret
+            cmbModem.AddItem ret
+        End If
+        Next i
 End Sub
 
 Private Sub OKButton_Click()
-    Dim temp As Long
     If txtPhoneNumber.Text = "" Or txtPhoneUser.Text = "" Or txtPhonePass.Text = "" Then
         temp = MsgBox("您没有输入有效的拨号网络参数。", vbOKOnly, "错误")
         Exit Sub
     End If
-    temp = AddConnection("", txtPhoneNumber.Text, "", txtPhoneUser.Text, txtPhonePass.Text, "")
-    Select Case temp
-        Case ERROR_PORT_ALREADY_OPEN: temp = MsgBox("错误，端口已经打开！", vbOKOnly, "Error")
-        Case ERROR_UNKNOWN: temp = MsgBox("未知的错误！", vbOKOnly, "Error")
-        Case ERROR_REQUEST_TIMEOUT: temp = MsgBox("错误，请求超时！", vbOKOnly, "Error")
-        Case ERROR_PASSWD_EXPIRED: temp = MsgBox("错误，您没有输入密码！", vbOKOnly, "Error")
-        Case ERROR_NO_DIALIN_PERMISSION: temp = MsgBox("错误，没有拨号音！", vbOKOnly, "Error")
-        Case ERROR_SERVER_NOT_RESPONDING: temp = MsgBox("错误，拨入的远程计算机没有响应！", vbOKOnly, "Error")
-        Case ERROR_UNRECOGNIZED_RESPONSE: temp = MsgBox("错误，未知的响应！", vbOKOnly, "Error")
-        Case ERROR_NO_RESPONSES: temp = MsgBox("错误，没有响应！", vbOKOnly, "Error")
-        Case ERROR_DEVICE_NOT_READY: temp = MsgBox("错误，设备没有准备好！", vbOKOnly, "Error")
-        Case ERROR_LINE_BUSY: temp = MsgBox("错误，占线！", vbOKOnly, "Error")
-        Case ERROR_NO_ANSWER: temp = MsgBox("错误，没有应答信号！", vbOKOnly, "Error")
-        Case ERROR_NO_CARRIER: temp = MsgBox("错误，没有载波信号！", vbOKOnly, "Error")
-        Case ERROR_NO_DIALTONE: temp = MsgBox("错误，没有拨号音！", vbOKOnly, "Error")
-        Case ERROR_AUTHENTICATION_FAILURE: temp = MsgBox("用户名密码出错！", vbOKOnly, "Error")
-        Case ERROR_PPP_TIMEOUT: temp = MsgBox("PPP接入超时。", vbOKOnly, "Error")
-        Case Else: IfDialedUp = True
-    End Select
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_NUMBER, Trim(txtPhoneNumber)
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_USER, xorPWD(Trim(txtPhoneUser))
     WriteProFileString App.Path & "\Control.ini", MODEM_INFO, MODEM_PASS, xorPWD(Trim(txtPhonePass))
 End Sub
+
+Public Function QueryValue(sKeyName As String, sValueName As String, lPredefinedKey As Long, zm As Variant) As Variant
+    Dim lRetVal As Long
+    Dim hKey As Long
+    Dim vValue As Variant
+    lRetVal = RegOpenKeyEx(lPredefinedKey, sKeyName, 0, KEY_ALL_ACCESS, hKey)
+    lRetVal = QueryValueEx(hKey, sValueName, vValue)
+    QueryValue = vValue
+    zm = vValue
+    RegCloseKey (hKey)
+End Function
+
+Private Function QueryValueEx(ByVal lhKey As Long, ByVal szValueName As String, vValue As Variant) As Long
+    Dim cch As Long
+    Dim lrc As Long
+    Dim lType As Long
+    Dim lValue As Long
+    Dim sValue As String
+   lrc = RegQueryValueExNULL(lhKey, szValueName, 0&, lType, 0&, cch)
+   sValue = String(cch, 0)
+   lrc = RegQueryValueExString(lhKey, szValueName, 0&, lType, sValue, cch)
+   vValue = Left$(sValue, cch)
+End Function
