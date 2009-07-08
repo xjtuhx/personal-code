@@ -111,7 +111,6 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   12515
          _ExtentY        =   9340
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":96F8
       End
@@ -137,7 +136,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-7"
+            TextSave        =   "2009-7-8"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -261,6 +260,9 @@ Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
     '接受请求
     Sock(SockIndex).Accept (requestID)
     'Form1.Print SockIndex & "接受请求"
+    Dim line As String
+    line = "接收到来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
+    AppendInfoLine (line)
 End Sub
 
 Private Sub Sock_Close(Index As Integer)

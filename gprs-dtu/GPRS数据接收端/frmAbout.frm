@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin VB.Form frmAbout 
    BorderStyle     =   3  'Fixed Dialog
-   Caption         =   "GPRS数据发送端"
+   Caption         =   "GPRS数据接收端"
    ClientHeight    =   3555
    ClientLeft      =   2340
    ClientTop       =   1935
@@ -56,7 +56,7 @@ Begin VB.Form frmAbout
       Y2              =   1687.583
    End
    Begin VB.Label lblDescription 
-      Caption         =   "本程序通过GPRS网络向数据接收端发送消息。"
+      Caption         =   "本程序通过有线网络接收发送端的数据。"
       ForeColor       =   &H00000000&
       Height          =   1170
       Left            =   1050
@@ -65,7 +65,7 @@ Begin VB.Form frmAbout
       Width           =   3885
    End
    Begin VB.Label lblTitle 
-      Caption         =   "GPRS数据发送端"
+      Caption         =   "GPRS数据接收端"
       ForeColor       =   &H00000000&
       Height          =   480
       Left            =   1050
