@@ -91,11 +91,11 @@ End Sub
 '----------------------------------------- √‹¬Îº”√‹°¢Ω‚√‹
 Public Function xorPWD(ByVal s As String) As String
     Dim temp As String
-    Dim I
+    Dim i
         temp = ""
-        For I = 1 To Len(s)
-            temp = temp + Chr(Asc(Mid(s, I, 1)) Xor 13)
-        Next I
+        For i = 1 To Len(s)
+            temp = temp + Chr(Asc(Mid(s, i, 1)) Xor 13)
+        Next i
         xorPWD = temp
 End Function
 
