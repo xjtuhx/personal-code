@@ -128,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-7"
+            TextSave        =   "2009-7-9"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -251,9 +251,9 @@ Private Sub ppp_status_timer_Timer()
     Dim ms As Long
     Dim rx As Long
     Dim tx As Long
-    ms = Get_PPP_Duration("vpn") / 1000
-    tx = Get_PPP_TXByte("vpn") / 1024
-    rx = Get_PPP_RXByte("vpn") / 1024
+    ms = Get_PPP_Duration(NAME_CDMA1X) / 1000
+    tx = Get_PPP_TXByte(NAME_CDMA1X) / 1024
+    rx = Get_PPP_RXByte(NAME_CDMA1X) / 1024
     line = "连接持续时间: " & CStr(ms) & " 秒，已传输 " & CStr(tx) & " KB字节，已接收 " & _
         CStr(rx) & " KB字节。"
     
@@ -326,7 +326,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             Dim ret As Boolean
             Dim line As String
             'ret = Exists_PPP_Connection(NAME_CDMA1X)
-            ret = Exists_PPP_Connection("vpn")
+            ret = Exists_PPP_Connection(NAME_CDMA1X)
             If ret = False Then
                 '新建一个拨号连接
                 line = "拨号连接不存在，正在新建拨号连接..."
@@ -334,13 +334,13 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 infoBox.SelText = line & vbNewLine
                 glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
                 
-                'ret = Create_PPP_Connection(NAME_CDMA1X, RASET_Phone, VS_Default, "#777", _
-                '        "ctnet@mycdma.cn", "vnet.mobi", "Wireless Station USB Modem", RASDT_Modem, _
-                '        False, "", False, "", "", False, "86", "021")
-                
-                ret = Create_PPP_Connection("vpn", RASET_Vpn, VS_Default, "10.11.10.37", _
-                        "gprs", "gprs123", vbNullString, RASDT_Vpn, _
+                ret = Create_PPP_Connection(NAME_CDMA1X, RASET_Phone, VS_Default, "#777", _
+                        "ctnet@mycdma.cn", "vnet.mobi", "Wireless Station USB Modem", RASDT_Modem, _
                         False, "", False, "", "", False, "86", "021")
+                
+                'ret = Create_PPP_Connection("vpn", RASET_Vpn, VS_Default, "10.11.10.37", _
+                '        "gprs", "gprs123", vbNullString, RASDT_Vpn, _
+                '       False, "", False, "", "", False, "86", "021")
                 
                 If ret = True Then
                     line = "连接创建成功！"
@@ -356,14 +356,14 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 End If
             End If
             
-            ret = Is_PPP_Connecting("vpn")
+            ret = Is_PPP_Connecting(NAME_CDMA1X)
             If ret = False Then
                 line = "正在尝试拨号..."
                 infoBox.SelStart = glInfoTxtLen
                 infoBox.SelText = line & vbNewLine
                 glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
                 'ret = Dial_PPP_Connection(NAME_CDMA1X)
-                ret = Dial_PPP_Connection("vpn")
+                ret = Dial_PPP_Connection(NAME_CDMA1X)
             End If
             
             If ret = True Then
@@ -417,7 +417,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             sock(0).Close
             Call sock_Close(0)
             'ret = Disconnect_PPP_Connection(NAME_CDMA1X)
-            ret = Disconnect_PPP_Connection("vpn")
+            ret = Disconnect_PPP_Connection(NAME_CDMA1X)
             If ret = True Then
                 statusBar.Panels(1) = "断开连接成功！"
                 ppp_status_timer.Enabled = False
