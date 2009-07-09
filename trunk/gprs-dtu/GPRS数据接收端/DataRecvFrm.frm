@@ -136,7 +136,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-8"
+            TextSave        =   "2009-7-9"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -420,7 +420,7 @@ LoopTag:
             '将本机连接端口设置为监听模式
             Listener.Listen
             If Listener.State = sckListening Then
-                line = LISTEN_SUCCESS & "侦听地址：" & Listener.LocalIP & " 侦听端口：" & Listener.LocalPort
+                line = LISTEN_SUCCESS & "侦听地址：" & Get_Client_PPP_IPAddress(NAME_MODEM) & " 侦听端口：" & Listener.LocalPort
                 infoBox.SelStart = glInfoTxtLen
                 infoBox.SelText = line & vbNewLine
                 glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
