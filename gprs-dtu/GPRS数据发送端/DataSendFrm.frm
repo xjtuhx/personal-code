@@ -128,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-9"
+            TextSave        =   "2009-7-12"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -225,6 +225,9 @@ Dim result_table As Recordset
 Dim GPSData As Recordset
 Dim result_table_last As String
 Dim gpsdata_last As String
+Dim conType As String
+Dim gpscount As Integer
+Dim rtcount As Integer
 
 
 Private Sub Form_Load()
@@ -240,6 +243,11 @@ Private Sub Form_Load()
     
     ppp_status_timer.Enabled = False
     
+    gpscount = 0
+    rtcount = 0
+    
+    conType = GetProfileString(App.Path & "\Control.ini", MODEM_INFO, MODEM_TYPE)
+    
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
     toolBar.Buttons(BTN_START).Enabled = False
@@ -251,13 +259,22 @@ Private Sub ppp_status_timer_Timer()
     Dim ms As Long
     Dim rx As Long
     Dim tx As Long
-    ms = Get_PPP_Duration(NAME_CDMA1X) / 1000
-    tx = Get_PPP_TXByte(NAME_CDMA1X) / 1024
-    rx = Get_PPP_RXByte(NAME_CDMA1X) / 1024
-    line = "连接持续时间: " & CStr(ms) & " 秒，已传输 " & CStr(tx) & " KB字节，已接收 " & _
-        CStr(rx) & " KB字节。"
+    If Is_PPP_Connecting(conType) Then
+        ms = Get_PPP_Duration(conType) / 1000
+        tx = Get_PPP_TXByte(conType) / 1024
+        rx = Get_PPP_RXByte(conType) / 1024
+        line = "连接持续时间: " & CStr(ms) & " 秒，已传输 " & CStr(tx) & " KB字节，已接收 " & _
+            CStr(rx) & " KB字节。"
     
-    statusBar.Panels(1) = line
+        statusBar.Panels(1) = line
+    Else
+        ' Connection broken
+        ppp_status_timer.Enabled = False
+        result_table_timer.Enabled = False
+        GPSData_timer.Enabled = False
+        sock(0).Close
+        Call sock_Close(0)
+    End If
 End Sub
 
 Private Sub result_table_timer_Timer()
@@ -282,10 +299,13 @@ EOFLOADA:
     clip = Trim(result_table.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(0) & ",'" & clip & "'"
-    infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = "发送:" & clip & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len("发送:" & clip & vbNewLine)
+    'PrintLog ("发送:" & clip)
+    rtcount = rtcount + 1
     sock(0).SendData (clip)
+    
+    PrintLog ("发送:" & str(gpscount + rtcount) & "条记录。")
+    gpscount = 0
+    rtcount = 0
 End Sub
 
 Private Sub GPSData_timer_Timer()
@@ -310,9 +330,8 @@ EOFLOADB:
     clip = Trim(GPSData.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(1) & ",'" & clip & "'"
-    infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = "发送:" & clip & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len("发送:" & clip & vbNewLine)
+    'PrintLog "发送:" & clip
+    gpscount = gpscount + 1
     sock(0).SendData (clip)
 End Sub
 
@@ -325,45 +344,63 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
         Case BTN_CONNECT
             Dim ret As Boolean
             Dim line As String
-            'ret = Exists_PPP_Connection(NAME_CDMA1X)
-            ret = Exists_PPP_Connection(NAME_CDMA1X)
+            phoneDialFrm.Show vbModal
+            
+            If phoneDialFrm.Cancelled Then
+                Exit Sub
+            End If
+            
+            conType = phoneDialFrm.cmbType.List(phoneDialFrm.cmbType.ListIndex)
+            
+            ret = Exists_PPP_Connection(conType)
             If ret = False Then
                 '新建一个拨号连接
                 line = "拨号连接不存在，正在新建拨号连接..."
-                infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = line & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                PrintLog (line)
                 
-                ret = Create_PPP_Connection(NAME_CDMA1X, RASET_Phone, VS_Default, "#777", _
-                        "ctnet@mycdma.cn", "vnet.mobi", "Wireless Station USB Modem", RASDT_Modem, _
-                        False, "", False, "", "", False, "86", "021")
-                
-                'ret = Create_PPP_Connection("vpn", RASET_Vpn, VS_Default, "10.11.10.37", _
-                '        "gprs", "gprs123", vbNullString, RASDT_Vpn, _
-                '       False, "", False, "", "", False, "86", "021")
+                Select Case conType
+                    Case NAME_CDMA1X
+                        ret = Create_PPP_Connection(NAME_CDMA1X, RASET_Phone, VS_Default, _
+                                phoneDialFrm.txtPhoneNumber.Text, phoneDialFrm.txtPhoneUser.Text, _
+                                phoneDialFrm.txtPhonePass.Text, phoneDialFrm.cmbModem.List(phoneDialFrm.cmbModem.ListIndex), _
+                                RASDT_Modem, False, vbNullString, False, vbNullString, vbNullString, False, _
+                                "86", "021")
+                    Case NAME_VPN
+                        ret = Create_PPP_Connection(NAME_VPN, RASET_Vpn, VS_Default, _
+                                phoneDialFrm.txtPhoneNumber.Text, phoneDialFrm.txtPhoneUser.Text, _
+                                phoneDialFrm.txtPhonePass.Text, vbNullString, _
+                                RASDT_Vpn, False, vbNullString, False, vbNullString, vbNullString, False, _
+                                vbNullString, vbNullString)
+                    Case NAME_ADSL
+                        ret = Create_PPP_Connection(NAME_ADSL, RASET_Broadband, VS_Default, _
+                                vbNullString, phoneDialFrm.txtPhoneUser.Text, _
+                                phoneDialFrm.txtPhonePass.Text, vbNullString, _
+                                RASDT_PPPoE, False, vbNullString, False, vbNullString, vbNullString, False, _
+                                vbNullString, vbNullString)
+                    Case NAME_MODEM
+                        ret = Create_PPP_Connection(NAME_MODEM, RASET_Phone, VS_Default, _
+                                phoneDialFrm.txtPhoneNumber.Text, phoneDialFrm.txtPhoneUser.Text, _
+                                phoneDialFrm.txtPhonePass.Text, phoneDialFrm.cmbModem.List(phoneDialFrm.cmbModem.ListIndex), _
+                                RASDT_Modem, False, vbNullString, False, vbNullString, vbNullString, False, _
+                                "86", "021")
+                End Select
                 
                 If ret = True Then
                     line = "连接创建成功！"
-                    infoBox.SelStart = glInfoTxtLen
-                    infoBox.SelText = line & vbNewLine
-                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                    PrintLog (line)
                 Else
                     line = "连接创建失败！请重试！"
-                    infoBox.SelStart = glInfoTxtLen
-                    infoBox.SelText = line & vbNewLine
-                    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                    PrintLog (line)
                     Exit Sub
                 End If
             End If
             
-            ret = Is_PPP_Connecting(NAME_CDMA1X)
+            ret = Is_PPP_Connecting(conType)
             If ret = False Then
                 line = "正在尝试拨号..."
-                infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = line & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
-                'ret = Dial_PPP_Connection(NAME_CDMA1X)
-                ret = Dial_PPP_Connection(NAME_CDMA1X)
+                PrintLog (line)
+
+                ret = Dial_PPP_Connection(conType)
             End If
             
             If ret = True Then
@@ -372,32 +409,29 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 ppp_status_timer.Enabled = True
                 
                 line = "拨号连接建立成功！"
-                infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = line & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                PrintLog (line)
                 
                 'toolBar.Buttons(BTN_CONNECT).Enabled = False
                 toolBar.Buttons(BTN_DISCONN).Enabled = True
                 
                 serverParamDialog.Show vbModal
                 If serverParamDialog.Cancelled = False Then
-                    If sock(0).State = sckOpen Then
-                        sock(0).Close
-                    End If
+                    'If sock(0).State = sckOpen Then
+                        'sock(0).Close
+                    'End If
+                    sock(0).Close
                     sock(0).RemoteHost = serverParamDialog.ipBox
                     '网络端口
                     sock(0).RemotePort = serverParamDialog.portBox
                     '发出连接命令
                     sock(0).Connect
                     
-                    TimedInfoDialog.Timeout = 15
-                    TimedInfoDialog.Start ("正在连接服务器 " & serverParamDialog.ipBox & " ...")
+                    TimedInfoDialog.timeout = 15
+                    TimedInfoDialog.Start "正在连接服务器 " & serverParamDialog.ipBox & " ...", 30
                     
                     If TimedInfoDialog.SUCCESS = False Then
                         line = SOCK_FAILURE & "服务器地址：" & serverParamDialog.ipBox
-                        infoBox.SelStart = glInfoTxtLen
-                        infoBox.SelText = line & vbNewLine
-                        glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                        PrintLog (line)
                         Exit Sub
                     End If
                 End If
@@ -406,18 +440,18 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 ppp_status_timer.Enabled = False
                 
                 line = "拨号失败，请重试！"
-                infoBox.SelStart = glInfoTxtLen
-                infoBox.SelText = line & vbNewLine
-                glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+                PrintLog (line)
             End If
             
         Case BTN_DISCONN
             result_table_timer.Enabled = False
             GPSData_timer.Enabled = False
             sock(0).Close
+            line = SOCK_CLOSED & "服务器地址：" & serverParamDialog.ipBox
+            PrintLog (line)
             Call sock_Close(0)
-            'ret = Disconnect_PPP_Connection(NAME_CDMA1X)
-            ret = Disconnect_PPP_Connection(NAME_CDMA1X)
+            
+            ret = Disconnect_PPP_Connection(conType)
             If ret = True Then
                 statusBar.Panels(1) = "断开连接成功！"
                 ppp_status_timer.Enabled = False
@@ -432,6 +466,9 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 toolBar.Buttons(BTN_START).Enabled = False
                 result_table_timer.Enabled = True
                 GPSData_timer.Enabled = True
+                
+                gpscount = 0
+                rtcount = 0
             End If
         Case BTN_STOP
             toolBar.Buttons(BTN_STOP).Enabled = False
@@ -450,11 +487,6 @@ End Sub
 Private Sub sock_Close(Index As Integer)
     'MsgBox ("socket closed")
     sock(Index).Close
-    Dim line As String
-    line = SOCK_CLOSED & "服务器地址：" & serverParamDialog.ipBox
-    infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = line & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
     toolBar.Buttons(BTN_START).Enabled = False
@@ -468,11 +500,17 @@ Private Sub sock_Connect(Index As Integer)
     TimedInfoDialog.Cancel
     Dim line As String
     line = SOCK_CONNECTED & "服务器地址：" & serverParamDialog.ipBox
-    infoBox.SelStart = glInfoTxtLen
-    infoBox.SelText = line & vbNewLine
-    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
+    PrintLog (line)
     toolBar.Buttons(BTN_CONNECT).Enabled = False
     toolBar.Buttons(BTN_DISCONN).Enabled = True
     toolBar.Buttons(BTN_START).Enabled = True
     toolBar.Buttons(BTN_STOP).Enabled = False
+End Sub
+
+Public Sub PrintLog(line As String)
+    With infoBox
+        .SelStart = glInfoTxtLen
+        .SelText = line & vbNewLine
+    End With
+    glInfoTxtLen = glInfoTxtLen + Len(line & vbNewLine)
 End Sub

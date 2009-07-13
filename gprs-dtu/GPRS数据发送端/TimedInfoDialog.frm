@@ -47,18 +47,18 @@ Attribute VB_Exposed = False
 
 Option Explicit
 Public SUCCESS As Boolean
-Public Timeout As Integer
+Public timeout As Integer
 
 Private Sub Form_Load()
     SUCCESS = False
-    Timeout = 30
+    timeout = 30
     timeout_timer.Enabled = False
 End Sub
 
 Private Sub timeout_timer_Timer()
-    If Timeout > 0 Then
-        timeLabel.Caption = "²Ù×÷Ê£Óà " & str(Timeout) & " Ãë"
-        Timeout = Timeout - 1
+    If timeout > 0 Then
+        timeLabel.Caption = "²Ù×÷Ê£Óà " & str(timeout) & " Ãë"
+        timeout = timeout - 1
     Else
         SUCCESS = False
         timeout_timer.Enabled = False
@@ -66,9 +66,10 @@ Private Sub timeout_timer_Timer()
     End If
 End Sub
 
-Public Sub Start(ByRef infoText As String)
+Public Sub Start(ByRef infoText As String, ByVal tout As Integer)
+    timeout = tout
     infoLabel.Caption = infoText
-    timeLabel.Caption = "²Ù×÷Ê£Óà " & str(Timeout) & " Ãë"
+    timeLabel.Caption = "²Ù×÷Ê£Óà " & str(timeout) & " Ãë"
     SUCCESS = False
     timeout_timer.Enabled = True
     Me.Show vbModal
