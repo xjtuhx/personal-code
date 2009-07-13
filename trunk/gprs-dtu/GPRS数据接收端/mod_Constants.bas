@@ -32,4 +32,7 @@ Global Const BTN_STOP = "停止接收"
 Global Const BTN_PREF = "关于"
 Global Const BTN_QUIT = "退出程序"
 
-Global Const NAME_MODEM = "MODEM_PHONE"
+Global Const NAME_MODEM = "Modem"
+Global Const NAME_ADSL = "adsl"
+Global Const NAME_VPN = "VPN"
+Global Const NAME_CDMA1X = "CDMA1X"

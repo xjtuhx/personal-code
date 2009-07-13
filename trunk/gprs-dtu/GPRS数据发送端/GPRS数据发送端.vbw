@@ -9,3 +9,4 @@ TimedInfoDialog = 44, 58, 854, 684, C, 63, 146, 873, 772, C
 serverParamDialog = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 mod_RasAPI = 110, 110, 767, 727, C
 frmAbout = 0, 0, 0, 0, C, 0, 0, 0, 0, C
+phoneDialFrm = 0, 0, 0, 0, C, 0, 0, 0, 0, C

@@ -21,6 +21,7 @@ Form=TimedInfoDialog.frm
 Form=serverParamDialog.frm
 Module=mod_RasAPI; RasAPI.bas
 Form=frmAbout.frm
+Form=phoneDialFrm.frm
 IconForm="DataSendFrm"
 Startup="Sub Main"
 HelpFile=""
