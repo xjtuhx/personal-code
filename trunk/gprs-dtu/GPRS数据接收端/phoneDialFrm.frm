@@ -160,6 +160,7 @@ Private Sub Form_Load()
     cmbType.AddItem NAME_VPN
     cmbType.AddItem NAME_MODEM
     cmbType.AddItem NAME_ADSL
+    cmbType.AddItem NAME_DUMMY
     cmbType.ListIndex = 0
 
     strComputer = "."

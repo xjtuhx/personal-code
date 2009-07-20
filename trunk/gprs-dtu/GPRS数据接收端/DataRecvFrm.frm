@@ -8,12 +8,12 @@ Begin VB.Form DataRecvFrm
    ClientHeight    =   7080
    ClientLeft      =   1575
    ClientTop       =   2145
-   ClientWidth     =   7545
+   ClientWidth     =   9810
    Icon            =   "DataRecvFrm.frx":0000
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   7080
-   ScaleWidth      =   7545
+   ScaleWidth      =   9810
    StartUpPosition =   2  '屏幕中心
    Begin VB.Timer ppp_status_timer 
       Enabled         =   0   'False
@@ -107,14 +107,14 @@ Begin VB.Form DataRecvFrm
       Left            =   120
       TabIndex        =   2
       Top             =   960
-      Width           =   7335
+      Width           =   9615
       Begin RichTextLib.RichTextBox infoBox 
          Height          =   5295
          Left            =   120
          TabIndex        =   3
          Top             =   240
-         Width           =   7095
-         _ExtentX        =   12515
+         Width           =   9375
+         _ExtentX        =   16536
          _ExtentY        =   9340
          _Version        =   393217
          ScrollBars      =   3
@@ -127,22 +127,22 @@ Begin VB.Form DataRecvFrm
       Left            =   0
       TabIndex        =   1
       Top             =   6705
-      Width           =   7545
-      _ExtentX        =   13309
+      Width           =   9810
+      _ExtentX        =   17304
       _ExtentY        =   661
       _Version        =   393216
       BeginProperty Panels {8E3867A5-8586-11D1-B16A-00C0F0283628} 
          NumPanels       =   3
          BeginProperty Panel1 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             AutoSize        =   1
-            Object.Width           =   8123
+            Object.Width           =   12118
             Text            =   "状态信息"
             TextSave        =   "状态信息"
          EndProperty
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-12"
+            TextSave        =   "2009-7-20"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -157,8 +157,8 @@ Begin VB.Form DataRecvFrm
       Left            =   0
       TabIndex        =   0
       Top             =   0
-      Width           =   7545
-      _ExtentX        =   13309
+      Width           =   9810
+      _ExtentX        =   17304
       _ExtentY        =   1508
       ButtonWidth     =   2090
       ButtonHeight    =   1349
@@ -258,6 +258,7 @@ End Sub
 Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
     Dim SockIndex As Integer
     Dim SockNum As Integer
+    Dim answer
     On Error Resume Next
     '查找连接的用户数
     SockNum = UBound(ConnectState)
@@ -275,10 +276,22 @@ Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
     Sock(SockIndex).Tag = SockIndex
     '接受请求
     Sock(SockIndex).Accept (requestID)
-    'Form1.Print SockIndex & "接受请求"
     Dim line As String
     line = "接收到来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
     AppendInfoLine (line)
+    
+    answer = MsgBox(line & "，是否接受？", vbQuestion + vbYesNo, "是否接受请求？")
+    If answer = vbNo Then
+        line = "拒绝了来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
+        AppendInfoLine (line)
+        Sock(SockIndex).SendData ("DENY")
+        Exit Sub
+    Else
+        line = "接受了来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
+        AppendInfoLine (line)
+        Sock(SockIndex).SendData ("ACCEPT")
+    End If
+    'Form1.Print SockIndex & "接受请求"
 End Sub
 
 Private Sub ppp_status_timer_Timer()
@@ -324,40 +337,49 @@ End Sub
 
 Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     Dim dx As String
-    Dim pos As Long
-    Dim tableName As String
     Dim tmpstr() As String
+    Dim arraylen As Long
     Dim sql As String
     Dim line As String
+    Dim i As Integer
+    Dim j As Integer
     
     Sock(Index).GetData dx, vbString
         
     recordcount = recordcount + 1
     
-    pos = InStr(dx, ",")
-    tableName = ""
-    If pos > 0 Then
-        tableName = Left(dx, pos - 1)
-        dx = Right(dx, Len(dx) - pos)
-    End If
-    If tableName = frmLogin.txtTableName(1) Then
-        ' GPSData
-        tmpstr = Split(dx, ",")
-        If Len(tmpstr) < 3 Then
-            Exit Sub
+    tmpstr = Split(dx, ",")
+    For i = LBound(tmpstr) To UBound(tmpstr)
+        If tmpstr(i) = frmLogin.txtTableName(1) Then
+            line = ""
+            For j = i + 1 To UBound(tmpstr)
+                If tmpstr(j) = frmLogin.txtTableName(0) Or tmpstr(j) = frmLogin.txtTableName(1) Then
+                    sql = "insert into " & tmpstr(i) & "values (" & Right(line, Len(line) - 1) & ")"
+                    'glConnB.Execute sql
+                    AppendInfoLine (sql)
+                    Exit For
+                Else
+                    line = line & "," & tmpstr(j)
+                End If
+            Next j
         End If
-        sql = "insert into " & frmLogin.txtTableName(1) & " values (" & dx & ")"
-        glConnB.Execute sql
-    End If
-    If tableName = frmLogin.txtTableName(0) Then
-        ' result_table
-        tmpstr = Split(dx, ",")
-        If Len(tmpstr) < 33 Then
-            Exit Sub
+        If tmpstr(i) = frmLogin.txtTableName(0) Then
+            line = ""
+            For j = i + 1 To UBound(tmpstr)
+                If tmpstr(j) = frmLogin.txtTableName(0) Or tmpstr(j) = frmLogin.txtTableName(1) Then
+                    sql = "insert into " & tmpstr(i) & "values (" & Right(line, Len(line) - 1) & ")"
+                    'glConnA.Execute sql
+                    AppendInfoLine (sql)
+                    Exit For
+                Else
+                    line = line & "," & tmpstr(j)
+                End If
+            Next j
         End If
-        sql = "insert into " & frmLogin.txtTableName(0) & " values (" & dx & ")"
-        glConnA.Execute sql
-    End If
+    Next i
+    
+    
+    
 End Sub
 
 Public Function FindFreeSocket()
@@ -426,6 +448,17 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                                 phoneDialFrm.txtPhonePass.Text, phoneDialFrm.cmbModem.List(phoneDialFrm.cmbModem.ListIndex), _
                                 RASDT_Modem, False, vbNullString, False, vbNullString, vbNullString, False, _
                                 "86", "021")
+                    Case NAME_DUMMY
+                        ret = True
+                        tickcount = Now
+                        recordcount = 0
+                        With DataRecvFrm
+                            .toolBar.Buttons(BTN_CONNECT).Enabled = False
+                            .toolBar.Buttons(BTN_DISCONN).Enabled = True
+                            .toolBar.Buttons(BTN_START).Enabled = True
+                            .toolBar.Buttons(BTN_STOP).Enabled = False
+                        End With
+                        Exit Sub
                 End Select
                 
                 If ret = True Then
@@ -448,19 +481,9 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             End If
             
             If ret = True Then
-                line = "网络连接已经建立！"
-                AppendInfoLine (line)
-                
-                '显示服务器IP信息
-                'MsgBox "接收端IP地址：" & Get_Client_PPP_IPAddress(conType)
-                
                 tickcount = Now
                 recordcount = 0
-                ppp_status_timer.Enabled = True
-                toolBar.Buttons(BTN_CONNECT).Enabled = False
-                toolBar.Buttons(BTN_DISCONN).Enabled = True
-                toolBar.Buttons(BTN_START).Enabled = True
-                toolBar.Buttons(BTN_STOP).Enabled = False
+                
             Else
                 line = "拨号失败，请重试！"
                 AppendInfoLine (line)
@@ -508,7 +531,7 @@ LoopTag:
             End If
         Case BTN_STOP
             Dim SockCount, i As Integer
-            SockCount = Sock.ubound
+            SockCount = Sock.UBound
             For i = 0 To SockCount
                 If Sock(i).State <> sckClosed Then
                     Sock(i).Close

@@ -869,61 +869,68 @@ Private Sub RasDialFunc(ByVal lpRasConn As Long, ByVal unMsg As Long, ByVal RasC
     
     Select Case RasConnectStatus
         Case RASCS_OpenPort
-             DataRecvFrm.statusBar.Panels(1) = "正在尝试打开通信端口"
+             DataRecvFrm.AppendInfoLine ("正在尝试打开通信端口")
         Case RASCS_PortOpened
-             DataRecvFrm.statusBar.Panels(1) = "通信端口已打开"
+             DataRecvFrm.AppendInfoLine ("通信端口已打开")
         Case RASCS_ConnectDevice
-             DataRecvFrm.statusBar.Panels(1) = "正在尝试连接设备"
+             DataRecvFrm.AppendInfoLine ("正在尝试连接设备")
         Case RASCS_DeviceConnected
-             DataRecvFrm.statusBar.Panels(1) = "已成功连接到设备"
+             DataRecvFrm.AppendInfoLine ("已成功连接到设备")
         Case RASCS_AllDevicesConnected
-             DataRecvFrm.statusBar.Panels(1) = "物理链路已建立"
+             DataRecvFrm.AppendInfoLine ("物理链路已建立")
         Case RASCS_Authenticate
-             DataRecvFrm.statusBar.Panels(1) = "准备验证用户名和密码"
+             DataRecvFrm.AppendInfoLine ("准备验证用户名和密码")
         Case RASCS_AuthNotify
-             DataRecvFrm.statusBar.Panels(1) = "正在验证用户名和密码"
+             DataRecvFrm.AppendInfoLine ("正在验证用户名和密码")
         Case RASCS_AuthRetry
-             DataRecvFrm.statusBar.Panels(1) = "服务器已请求尝试另一个身份验证"
+             DataRecvFrm.AppendInfoLine ("服务器已请求尝试另一个身份验证")
         Case RASCS_AuthCallback
-             DataRecvFrm.statusBar.Panels(1) = "服务器已请求一个回拨号码"
+             DataRecvFrm.AppendInfoLine ("服务器已请求一个回拨号码")
         Case RASCS_AuthChangePassword
-             DataRecvFrm.statusBar.Panels(1) = "已请求改变账号上的密码"
+             DataRecvFrm.AppendInfoLine ("已请求改变账号上的密码")
         Case RASCS_AuthProject
-             DataRecvFrm.statusBar.Panels(1) = "正在注册网络"
+             DataRecvFrm.AppendInfoLine ("正在注册网络")
         Case RASCS_AuthLinkSpeed
-             DataRecvFrm.statusBar.Panels(1) = "正在计算链路速率"
+             DataRecvFrm.AppendInfoLine ("正在计算链路速率")
         Case RASCS_AuthAck
-             DataRecvFrm.statusBar.Panels(1) = "身份验证请求正在确认中"
+             DataRecvFrm.AppendInfoLine ("身份验证请求正在确认中")
         Case RASCS_ReAuthenticate
-             DataRecvFrm.statusBar.Panels(1) = "准备开始回拨之后的身份验证"
+             DataRecvFrm.AppendInfoLine ("准备开始回拨之后的身份验证")
         Case RASCS_Authenticated
-             DataRecvFrm.statusBar.Panels(1) = "已通过身份验证"
+             DataRecvFrm.AppendInfoLine ("已通过身份验证")
         Case RASCS_PrepareForCallback
-             DataRecvFrm.statusBar.Panels(1) = "线路即将取消连接，准备回拨"
+             DataRecvFrm.AppendInfoLine ("线路即将取消连接，准备回拨")
         Case RASCS_WaitForModemReset
-             DataRecvFrm.statusBar.Panels(1) = "准备回拨之前，客户端等待调制解调器的重新设置"
+             DataRecvFrm.AppendInfoLine ("准备回拨之前，客户端等待调制解调器的重新设置")
         Case RASCS_WaitForCallback
-             DataRecvFrm.statusBar.Panels(1) = "等待服务器发出的接入拨号"
+             DataRecvFrm.AppendInfoLine ("等待服务器发出的接入拨号")
         Case RASCS_Projected
-             DataRecvFrm.statusBar.Panels(1) = "网络注册成功"
+             DataRecvFrm.AppendInfoLine ("网络注册成功")
         Case RASCS_StartAuthentication      'Windows 95 only
-             DataRecvFrm.statusBar.Panels(1) = "用户身份验证已开始或已完成"
+             DataRecvFrm.AppendInfoLine ("用户身份验证已开始或已完成")
         Case RASCS_CallbackComplete         'Windows 95 only
-             DataRecvFrm.statusBar.Panels(1) = "已经回拨客户端"
+             DataRecvFrm.AppendInfoLine ("已经回拨客户端")
         Case RASCS_LogonNetwork             'Windows 95 only
-             DataRecvFrm.statusBar.Panels(1) = "正在登录远程网络"
+             DataRecvFrm.AppendInfoLine ("正在登录远程网络")
         Case RASCS_Interactive
-             DataRecvFrm.statusBar.Panels(1) = "拨号程序正在等待超级终端"
+             DataRecvFrm.AppendInfoLine ("拨号程序正在等待超级终端")
         Case RASCS_RetryAuthentication
-             DataRecvFrm.statusBar.Panels(1) = "拨号程序正在等待新的用户凭据"
+             DataRecvFrm.AppendInfoLine ("拨号程序正在等待新的用户凭据")
         Case RASCS_CallbackSetByCaller
-             DataRecvFrm.statusBar.Panels(1) = "拨号程序正在等待客户端的回拨号码"
+             DataRecvFrm.AppendInfoLine ("拨号程序正在等待客户端的回拨号码")
         Case RASCS_PasswordExpired
-             DataRecvFrm.statusBar.Panels(1) = "拨号程序希望用户提供一个新密码"
+             DataRecvFrm.AppendInfoLine ("拨号程序希望用户提供一个新密码")
         Case RASCS_Connected
-             DataRecvFrm.statusBar.Panels(1) = "连接成功"
+             DataRecvFrm.AppendInfoLine ("连接成功")
+             With DataRecvFrm
+                .ppp_status_timer.Enabled = True
+                .toolBar.Buttons(BTN_CONNECT).Enabled = False
+                .toolBar.Buttons(BTN_DISCONN).Enabled = True
+                .toolBar.Buttons(BTN_START).Enabled = True
+                .toolBar.Buttons(BTN_STOP).Enabled = False
+             End With
         Case RASCS_Disconnected
-             DataRecvFrm.statusBar.Panels(1) = "连接失败"
+             DataRecvFrm.AppendInfoLine ("连接失败")
     End Select
     
     If dwError <> 0 Then
