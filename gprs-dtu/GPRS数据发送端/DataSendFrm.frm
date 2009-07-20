@@ -8,13 +8,13 @@ Begin VB.Form DataSendFrm
    ClientHeight    =   6750
    ClientLeft      =   45
    ClientTop       =   435
-   ClientWidth     =   6450
+   ClientWidth     =   8715
    Icon            =   "DataSendFrm.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
    ScaleHeight     =   6750
-   ScaleWidth      =   6450
+   ScaleWidth      =   8715
    StartUpPosition =   2  '屏幕中心
    Begin VB.Timer ppp_status_timer 
       Enabled         =   0   'False
@@ -111,8 +111,8 @@ Begin VB.Form DataSendFrm
       Left            =   0
       TabIndex        =   0
       Top             =   6375
-      Width           =   6450
-      _ExtentX        =   11377
+      Width           =   8715
+      _ExtentX        =   15372
       _ExtentY        =   661
       SimpleText      =   "状态栏"
       _Version        =   393216
@@ -120,7 +120,7 @@ Begin VB.Form DataSendFrm
          NumPanels       =   3
          BeginProperty Panel1 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             AutoSize        =   1
-            Object.Width           =   6191
+            Object.Width           =   10186
             Text            =   "状态栏"
             TextSave        =   "状态栏"
          EndProperty
@@ -128,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-12"
+            TextSave        =   "2009-7-20"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -142,10 +142,11 @@ Begin VB.Form DataSendFrm
       Left            =   0
       TabIndex        =   1
       Top             =   840
-      Width           =   6375
-      _ExtentX        =   11245
+      Width           =   8655
+      _ExtentX        =   15266
       _ExtentY        =   9763
       _Version        =   393217
+      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"DataSendFrm.frx":96F8
    End
@@ -155,8 +156,8 @@ Begin VB.Form DataSendFrm
       Left            =   0
       TabIndex        =   2
       Top             =   0
-      Width           =   6450
-      _ExtentX        =   11377
+      Width           =   8715
+      _ExtentX        =   15372
       _ExtentY        =   1508
       ButtonWidth     =   1773
       ButtonHeight    =   1349
@@ -246,7 +247,7 @@ Private Sub Form_Load()
     gpscount = 0
     rtcount = 0
     
-    conType = GetProfileString(App.Path & "\Control.ini", MODEM_INFO, MODEM_TYPE)
+    conType = ""
     
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
@@ -281,8 +282,7 @@ Private Sub result_table_timer_Timer()
     If sock(0).State <> sckConnected Then
         Exit Sub
     End If
-    If result_table Is Nothing Or result_table.State <> 1 Then
-EOFLOADA:
+    If result_table Is Nothing Or result_table.State = 0 Then
         If result_table_last = "" Then
             Call GetRecords(result_table, glConnA, _
                     frmLogin.txtTableName(0), frmLogin.txtTimestamp(0))
@@ -292,14 +292,24 @@ EOFLOADA:
         End If
     End If
     If result_table.EOF Then
-        GoTo EOFLOADA
+        If result_table_last = "" Then
+            Call GetRecords(result_table, glConnA, _
+                    frmLogin.txtTableName(0), frmLogin.txtTimestamp(0))
+        Else
+            Call GetRecords(result_table, glConnA, _
+                    frmLogin.txtTableName(0), result_table_last)
+        End If
+    End If
+    
+    If result_table.EOF Then
+        Exit Sub
     End If
     Dim clip As String
     result_table_last = result_table.Fields("measuretime")
     clip = Trim(result_table.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
-    clip = frmLogin.txtTableName(0) & ",'" & clip & "'"
-    'PrintLog ("发送:" & clip)
+    clip = frmLogin.txtTableName(0) & ",'" & clip & "',"
+    PrintLog ("发送:" & clip)
     rtcount = rtcount + 1
     sock(0).SendData (clip)
     
@@ -312,8 +322,7 @@ Private Sub GPSData_timer_Timer()
     If sock(0).State <> sckConnected Then
         Exit Sub
     End If
-    If GPSData Is Nothing Or GPSData.State <> 1 Then
-EOFLOADB:
+    If GPSData Is Nothing Or GPSData.State = 0 Then
         If gpsdata_last = "" Then
             Call GetRecords(GPSData, glConnB, _
                     frmLogin.txtTableName(1), frmLogin.txtTimestamp(1))
@@ -323,17 +332,29 @@ EOFLOADB:
         End If
     End If
     If GPSData.EOF Then
-        GoTo EOFLOADB
+        If gpsdata_last = "" Then
+            Call GetRecords(GPSData, glConnB, _
+                    frmLogin.txtTableName(1), frmLogin.txtTimestamp(1))
+        Else
+            Call GetRecords(GPSData, glConnB, _
+                    frmLogin.txtTableName(1), gpsdata_last)
+        End If
     End If
+    
+    If GPSData.EOF Then
+        Exit Sub
+    End If
+    
     Dim clip As String
     gpsdata_last = GPSData.Fields("measuretime")
     clip = Trim(GPSData.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
-    clip = frmLogin.txtTableName(1) & ",'" & clip & "'"
-    'PrintLog "发送:" & clip
+    clip = frmLogin.txtTableName(1) & ",'" & clip & "',"
+    PrintLog "发送:" & clip
     gpscount = gpscount + 1
     sock(0).SendData (clip)
 End Sub
+
 
 Private Sub Timer1_Timer()
     statusBar.Panels(3).Text = Time
@@ -404,13 +425,6 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
             End If
             
             If ret = True Then
-                
-                '启动连接状态计时器
-                ppp_status_timer.Enabled = True
-                
-                line = "拨号连接建立成功！"
-                PrintLog (line)
-                
                 'toolBar.Buttons(BTN_CONNECT).Enabled = False
                 toolBar.Buttons(BTN_DISCONN).Enabled = True
                 
@@ -488,7 +502,7 @@ Private Sub sock_Close(Index As Integer)
     'MsgBox ("socket closed")
     sock(Index).Close
     toolBar.Buttons(BTN_CONNECT).Enabled = True
-    toolBar.Buttons(BTN_DISCONN).Enabled = False
+    toolBar.Buttons(BTN_DISCONN).Enabled = True
     toolBar.Buttons(BTN_START).Enabled = False
     toolBar.Buttons(BTN_STOP).Enabled = False
     GPSData_timer.Enabled = False
@@ -499,12 +513,29 @@ Private Sub sock_Connect(Index As Integer)
     'MsgBox ("socket connected")
     TimedInfoDialog.Cancel
     Dim line As String
-    line = SOCK_CONNECTED & "服务器地址：" & serverParamDialog.ipBox
+    line = "连接请求已发送，等待服务器接收..."
     PrintLog (line)
-    toolBar.Buttons(BTN_CONNECT).Enabled = False
-    toolBar.Buttons(BTN_DISCONN).Enabled = True
-    toolBar.Buttons(BTN_START).Enabled = True
-    toolBar.Buttons(BTN_STOP).Enabled = False
+End Sub
+
+
+Private Sub sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
+    Dim data As String
+    Dim line As String
+    sock(Index).GetData data, vbString
+    
+    Select Case data
+        Case "DENY"
+            PrintLog ("连接请求被拒绝！")
+            sock_Close (Index)
+        Case "ACCEPT"
+            PrintLog ("连接请求被接受！")
+            line = SOCK_CONNECTED & "服务器地址：" & serverParamDialog.ipBox
+            PrintLog (line)
+            toolBar.Buttons(BTN_CONNECT).Enabled = False
+            toolBar.Buttons(BTN_DISCONN).Enabled = True
+            toolBar.Buttons(BTN_START).Enabled = True
+            toolBar.Buttons(BTN_STOP).Enabled = False
+    End Select
 End Sub
 
 Public Sub PrintLog(line As String)

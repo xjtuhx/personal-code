@@ -19,7 +19,7 @@ Global Const SERVER_PASS_B = "口令B"
 Global Const SERVER_TABLE_B = "数据表B"
 Global Const SERVER_TIMESTAMP_B = "初始发送时间B"
 Global Const CONNECT_INFO = "连接信息"
-Global Const CONNECT_IP = "连接IP"
+Global Const CONNECT_IP = "连接地址"
 Global Const CONNECT_PORT = "连接端口"
 
 Global Const SOCK_CLOSED = "服务器连接已关闭！"
