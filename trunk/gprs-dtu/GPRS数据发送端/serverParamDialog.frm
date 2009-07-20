@@ -84,7 +84,8 @@ Private Sub Form_Load()
 End Sub
 
 Private Sub OKButton_Click()
-    If CheckIP(ipBox.Text) Then
+    On Error Resume Next
+    If CheckIP(ipBox.Text) And CLng(portBox.Text) > 0 And CLng(portBox.Text) < 65535 Then
         WriteProFileString App.Path & "\Control.ini", CONNECT_INFO, CONNECT_IP, Trim(Me.ipBox.Text)
         WriteProFileString App.Path & "\Control.ini", CONNECT_INFO, CONNECT_PORT, Trim(Me.portBox.Text)
         Cancelled = False
