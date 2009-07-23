@@ -79,8 +79,8 @@ End Sub
 
 Private Sub Form_Load()
     Cancelled = True
-    ipBox = GetProfileString(App.Path, "\Control.ini", CONNECT_INFO, CONNECT_IP)
-    portBox = GetProfileString(App.Path, "\Control.ini", CONNECT_INFO, CONNECT_PORT)
+    ipBox.Text = GetProfileString(App.Path & "\Control.ini", CONNECT_INFO, CONNECT_IP)
+    portBox.Text = GetProfileString(App.Path & "\Control.ini", CONNECT_INFO, CONNECT_PORT)
 End Sub
 
 Private Sub OKButton_Click()
