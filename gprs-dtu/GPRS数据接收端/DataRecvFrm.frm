@@ -117,6 +117,7 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   16536
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":96F8
       End
@@ -142,7 +143,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-20"
+            TextSave        =   "2009-7-23"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -160,7 +161,7 @@ Begin VB.Form DataRecvFrm
       Width           =   9810
       _ExtentX        =   17304
       _ExtentY        =   1508
-      ButtonWidth     =   2090
+      ButtonWidth     =   1455
       ButtonHeight    =   1349
       Appearance      =   1
       ImageList       =   "imageBar"
@@ -170,16 +171,16 @@ Begin VB.Form DataRecvFrm
       BeginProperty Buttons {66833FE8-8583-11D1-B16A-00C0F0283628} 
          NumButtons      =   9
          BeginProperty Button1 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "连接有线网络"
-            Key             =   "连接有线网络"
-            Description     =   "连接有线网络"
+            Caption         =   "连接网络"
+            Key             =   "连接网络"
+            Description     =   "连接网络"
             Object.ToolTipText     =   "通过Modem拨号连接到互联网"
             ImageIndex      =   7
          EndProperty
          BeginProperty Button2 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Caption         =   "断开有线网络"
-            Key             =   "断开有线网络"
-            Description     =   "断开有线网络"
+            Caption         =   "断开网络"
+            Key             =   "断开网络"
+            Description     =   "断开网络"
             Object.ToolTipText     =   "断开网络连接"
             ImageIndex      =   6
          EndProperty
@@ -285,7 +286,6 @@ Private Sub Listener_ConnectionRequest(ByVal requestID As Long)
         line = "拒绝了来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
         AppendInfoLine (line)
         Sock(SockIndex).SendData ("DENY")
-        Exit Sub
     Else
         line = "接受了来自" & Sock(SockIndex).RemoteHostIP & "的连接请求"
         AppendInfoLine (line)
@@ -343,38 +343,66 @@ Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
     Dim line As String
     Dim i As Integer
     Dim j As Integer
+    Dim answer
     
+    On Error Resume Next
     Sock(Index).GetData dx, vbString
         
     recordcount = recordcount + 1
     
     tmpstr = Split(dx, ",")
     For i = LBound(tmpstr) To UBound(tmpstr)
+        If tmpstr(i) = "OVERDUE" Then
+            answer = MsgBox("发送端暂无数据发送，是否继续等待？", vbQuestion + vbYesNo, "是否继续等待？")
+            If answer = vbNo Then
+                Call Sock_Close(Index)
+                Exit Sub
+            End If
+        End If
         If tmpstr(i) = frmLogin.txtTableName(1) Then
             line = ""
             For j = i + 1 To UBound(tmpstr)
                 If tmpstr(j) = frmLogin.txtTableName(0) Or tmpstr(j) = frmLogin.txtTableName(1) Then
-                    sql = "insert into " & tmpstr(i) & "values (" & Right(line, Len(line) - 1) & ")"
-                    'glConnB.Execute sql
-                    AppendInfoLine (sql)
+                    sql = "insert into " & tmpstr(i) & " values (" & Right(line, Len(line) - 1) & ")"
+                    glConnB.Execute sql
+                    'AppendInfoLine (sql)
+                    line = ""
                     Exit For
                 Else
-                    line = line & "," & tmpstr(j)
+                    If tmpstr(j) <> "" And tmpstr(j) <> "OVERDUE" Then
+                        line = line & "," & tmpstr(j)
+                    End If
                 End If
             Next j
+            
+            If Not line = "" Then
+                sql = "insert into " & tmpstr(i) & " values (" & Right(line, Len(line) - 1) & ")"
+                glConnB.Execute sql
+                'AppendInfoLine (sql)
+                line = ""
+            End If
         End If
         If tmpstr(i) = frmLogin.txtTableName(0) Then
             line = ""
             For j = i + 1 To UBound(tmpstr)
                 If tmpstr(j) = frmLogin.txtTableName(0) Or tmpstr(j) = frmLogin.txtTableName(1) Then
-                    sql = "insert into " & tmpstr(i) & "values (" & Right(line, Len(line) - 1) & ")"
-                    'glConnA.Execute sql
-                    AppendInfoLine (sql)
+                    sql = "insert into " & tmpstr(i) & " values (" & Right(line, Len(line) - 1) & ")"
+                    glConnA.Execute sql
+                    'AppendInfoLine (sql)
                     Exit For
                 Else
-                    line = line & "," & tmpstr(j)
+                    If tmpstr(j) <> "" And tmpstr(j) <> "OVERDUE" Then
+                        line = line & "," & tmpstr(j)
+                    End If
                 End If
             Next j
+            
+            If Not line = "" Then
+                sql = "insert into " & tmpstr(i) & " values (" & Right(line, Len(line) - 1) & ")"
+                glConnA.Execute sql
+                'AppendInfoLine (sql)
+                line = ""
+            End If
         End If
     Next i
     

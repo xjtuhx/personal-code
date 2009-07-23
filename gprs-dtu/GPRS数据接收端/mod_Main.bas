@@ -11,7 +11,7 @@ Global glConnB As ADODB.Connection
 Global glConnStringA As String '全局连接字符串
 Global glConnStringB As String
 
-Global glInfoTxtLen As Integer
+Global glInfoTxtLen As Long
 
 '==================================================== 主程序
 Sub Main()
