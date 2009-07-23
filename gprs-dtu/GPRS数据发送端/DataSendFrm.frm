@@ -128,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-20"
+            TextSave        =   "2009-7-23"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -146,7 +146,6 @@ Begin VB.Form DataSendFrm
       _ExtentX        =   15266
       _ExtentY        =   9763
       _Version        =   393217
-      Enabled         =   -1  'True
       ScrollBars      =   3
       TextRTF         =   $"DataSendFrm.frx":96F8
    End
@@ -229,6 +228,7 @@ Dim gpsdata_last As String
 Dim conType As String
 Dim gpscount As Integer
 Dim rtcount As Integer
+Dim duetime(2) As Long
 
 
 Private Sub Form_Load()
@@ -248,6 +248,9 @@ Private Sub Form_Load()
     rtcount = 0
     
     conType = ""
+    
+    duetime(0) = 0
+    duetime(1) = 0
     
     toolBar.Buttons(BTN_CONNECT).Enabled = True
     toolBar.Buttons(BTN_DISCONN).Enabled = False
@@ -270,6 +273,7 @@ Private Sub ppp_status_timer_Timer()
         statusBar.Panels(1) = line
     Else
         ' Connection broken
+        MsgBox "网络连接已经断开！"
         ppp_status_timer.Enabled = False
         result_table_timer.Enabled = False
         GPSData_timer.Enabled = False
@@ -302,6 +306,11 @@ Private Sub result_table_timer_Timer()
     End If
     
     If result_table.EOF Then
+        duetime(0) = duetime(0) + 1
+        If CStr(duetime(0) / 60) = frmLogin.txtDuetime(0) Then
+            PrintLog (frmLogin.txtTableName(0) & "超时，暂无数据发送。")
+            sock(0).SendData ("OVERDUE,")
+        End If
         Exit Sub
     End If
     Dim clip As String
@@ -309,7 +318,7 @@ Private Sub result_table_timer_Timer()
     clip = Trim(result_table.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(0) & ",'" & clip & "',"
-    PrintLog ("发送:" & clip)
+    'PrintLog ("发送:" & clip)
     rtcount = rtcount + 1
     sock(0).SendData (clip)
     
@@ -342,6 +351,11 @@ Private Sub GPSData_timer_Timer()
     End If
     
     If GPSData.EOF Then
+        duetime(1) = duetime(1) + 1
+        If CStr(duetime(1)) = frmLogin.txtDuetime(1) Then
+            PrintLog (frmLogin.txtTableName(1) & "超时，暂无数据发送。")
+            sock(0).SendData ("OVERDUE,")
+        End If
         Exit Sub
     End If
     
@@ -350,7 +364,7 @@ Private Sub GPSData_timer_Timer()
     clip = Trim(GPSData.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(1) & ",'" & clip & "',"
-    PrintLog "发送:" & clip
+    'PrintLog "发送:" & clip
     gpscount = gpscount + 1
     sock(0).SendData (clip)
 End Sub
@@ -475,6 +489,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
         Case BTN_START
             If Not sock(0).State = sckConnected Then
                 MsgBox "连接已断开，请重新连接服务器！", vbOKOnly, "出错信息"
+                sock_Close (0)
             Else
                 toolBar.Buttons(BTN_STOP).Enabled = True
                 toolBar.Buttons(BTN_START).Enabled = False
@@ -483,6 +498,9 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 
                 gpscount = 0
                 rtcount = 0
+                
+                duetime(0) = 0
+                duetime(1) = 0
             End If
         Case BTN_STOP
             toolBar.Buttons(BTN_STOP).Enabled = False
