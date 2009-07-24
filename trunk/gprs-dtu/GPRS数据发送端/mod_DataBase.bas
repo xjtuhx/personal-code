@@ -52,7 +52,7 @@ Public Function IsConnected(ByRef con As Connection, ByRef sql As String)
 End Function
 
 
-Public Sub GetRecords(ByRef rs As Recordset, ByRef dbcon As ADODB.Connection, ByRef tableName As String, ByRef timestamp As String)
+Public Sub GetRecords(ByRef rs As Recordset, ByRef dbcon As ADODB.Connection, ByRef tableName As String, ByRef starttime As String, ByRef endtime As String)
 '=====================================================
 '从数据表中获取从timestamp开始的信息
 '=====================================================
@@ -68,7 +68,14 @@ Public Sub GetRecords(ByRef rs As Recordset, ByRef dbcon As ADODB.Connection, By
         Exit Sub
     End If
     Dim sqlstring As String
-    sqlstring = "select * from " & tableName & " where measuretime > #" & timestamp & "#"
+    sqlstring = "select * from " & tableName
+    If starttime <> "" Then
+        sqlstring = sqlstring & " where measuretime > #" & starttime & "#"
+        If endtime <> "" Then
+            sqlstring = sqlstring & " and measuretime < #" & endtime & "#"
+        End If
+    End If
+    sqlstring = sqlstring & " order by measuretime asc"
     rs.CursorLocation = adUseClient
     rs.Open sqlstring, dbcon, adOpenDynamic, adLockReadOnly
     If Not rs.RecordCount >= 0 Then

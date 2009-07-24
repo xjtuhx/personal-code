@@ -128,7 +128,7 @@ Begin VB.Form DataSendFrm
             Style           =   6
             Alignment       =   2
             Text            =   "显示日期"
-            TextSave        =   "2009-7-23"
+            TextSave        =   "2009-7-24"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   2
@@ -223,19 +223,27 @@ Attribute VB_Exposed = False
 Option Explicit
 Dim result_table As Recordset
 Dim GPSData As Recordset
-Dim result_table_last As String
-Dim gpsdata_last As String
+Dim result_table_start As String
+Dim result_table_end As String
+Dim gpsdata_start As String
+Dim gpsdata_end As String
 Dim conType As String
 Dim gpscount As Integer
 Dim rtcount As Integer
 Dim duetime(2) As Long
+Dim OverDue As String
 
 
 Private Sub Form_Load()
     Set result_table = New Recordset
     Set GPSData = New Recordset
-    result_table_last = ""
-    gpsdata_last = ""
+    
+    result_table_start = ""
+    result_table_end = ""
+    
+    gpsdata_start = ""
+    gpsdata_end = ""
+    
     statusBar.Panels(3).Text = Time
     
     result_table_timer.Enabled = False
@@ -248,6 +256,8 @@ Private Sub Form_Load()
     rtcount = 0
     
     conType = ""
+    
+    OverDue = ""
     
     duetime(0) = 0
     duetime(1) = 0
@@ -287,38 +297,32 @@ Private Sub result_table_timer_Timer()
         Exit Sub
     End If
     If result_table Is Nothing Or result_table.State = 0 Then
-        If result_table_last = "" Then
-            Call GetRecords(result_table, glConnA, _
-                    frmLogin.txtTableName(0), frmLogin.txtTimestamp(0))
-        Else
-            Call GetRecords(result_table, glConnA, _
-                    frmLogin.txtTableName(0), result_table_last)
-        End If
+        Call GetRecords(result_table, glConnA, _
+                frmLogin.txtTableName(0), result_table_start, result_table_end)
     End If
     If result_table.EOF Then
-        If result_table_last = "" Then
-            Call GetRecords(result_table, glConnA, _
-                    frmLogin.txtTableName(0), frmLogin.txtTimestamp(0))
-        Else
-            Call GetRecords(result_table, glConnA, _
-                    frmLogin.txtTableName(0), result_table_last)
-        End If
+        Call GetRecords(result_table, glConnA, _
+                frmLogin.txtTableName(0), result_table_start, result_table_end)
     End If
     
     If result_table.EOF Then
         duetime(0) = duetime(0) + 1
         If CStr(duetime(0) / 60) = frmLogin.txtDuetime(0) Then
-            PrintLog (frmLogin.txtTableName(0) & "超时，暂无数据发送。")
-            sock(0).SendData ("OVERDUE,")
+            If OverDue = "" Then
+                OverDue = "result_table"
+            Else
+                PrintLog (frmLogin.txtTableName(0) & "超时，暂无数据发送。")
+                sock(0).SendData ("OVERDUE,")
+            End If
         End If
         Exit Sub
     End If
     Dim clip As String
-    result_table_last = result_table.Fields("measuretime")
+    result_table_start = result_table.Fields("measuretime")
     clip = Trim(result_table.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(0) & ",'" & clip & "',"
-    'PrintLog ("发送:" & clip)
+    PrintLog ("发送:" & clip)
     rtcount = rtcount + 1
     sock(0).SendData (clip)
     
@@ -332,39 +336,33 @@ Private Sub GPSData_timer_Timer()
         Exit Sub
     End If
     If GPSData Is Nothing Or GPSData.State = 0 Then
-        If gpsdata_last = "" Then
-            Call GetRecords(GPSData, glConnB, _
-                    frmLogin.txtTableName(1), frmLogin.txtTimestamp(1))
-        Else
-            Call GetRecords(GPSData, glConnB, _
-                    frmLogin.txtTableName(1), gpsdata_last)
-        End If
+        Call GetRecords(GPSData, glConnB, _
+                frmLogin.txtTableName(1), gpsdata_start, gpsdata_end)
     End If
     If GPSData.EOF Then
-        If gpsdata_last = "" Then
-            Call GetRecords(GPSData, glConnB, _
-                    frmLogin.txtTableName(1), frmLogin.txtTimestamp(1))
-        Else
-            Call GetRecords(GPSData, glConnB, _
-                    frmLogin.txtTableName(1), gpsdata_last)
-        End If
+        Call GetRecords(GPSData, glConnB, _
+                frmLogin.txtTableName(1), gpsdata_start, gpsdata_end)
     End If
     
     If GPSData.EOF Then
         duetime(1) = duetime(1) + 1
         If CStr(duetime(1)) = frmLogin.txtDuetime(1) Then
-            PrintLog (frmLogin.txtTableName(1) & "超时，暂无数据发送。")
-            sock(0).SendData ("OVERDUE,")
+            If OverDue = "" Then
+                OverDue = "GPSData"
+            Else
+                PrintLog (frmLogin.txtTableName(1) & "超时，暂无数据发送。")
+                sock(0).SendData ("OVERDUE,")
+            End If
         End If
         Exit Sub
     End If
     
     Dim clip As String
-    gpsdata_last = GPSData.Fields("measuretime")
+    gpsdata_start = GPSData.Fields("measuretime")
     clip = Trim(GPSData.GetString(adClipString, 1, "','"))
     clip = Left(clip, Len(clip) - 1)
     clip = frmLogin.txtTableName(1) & ",'" & clip & "',"
-    'PrintLog "发送:" & clip
+    PrintLog "发送:" & clip
     gpscount = gpscount + 1
     sock(0).SendData (clip)
 End Sub
@@ -455,7 +453,7 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                     sock(0).Connect
                     
                     TimedInfoDialog.timeout = 15
-                    TimedInfoDialog.Start "正在连接服务器 " & serverParamDialog.ipBox & " ...", 30
+                    TimedInfoDialog.start "正在连接服务器 " & serverParamDialog.ipBox & " ...", 30
                     
                     If TimedInfoDialog.SUCCESS = False Then
                         line = SOCK_FAILURE & "服务器地址：" & serverParamDialog.ipBox
@@ -491,16 +489,27 @@ Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
                 MsgBox "连接已断开，请重新连接服务器！", vbOKOnly, "出错信息"
                 sock_Close (0)
             Else
-                toolBar.Buttons(BTN_STOP).Enabled = True
-                toolBar.Buttons(BTN_START).Enabled = False
-                result_table_timer.Enabled = True
-                GPSData_timer.Enabled = True
-                
-                gpscount = 0
-                rtcount = 0
-                
-                duetime(0) = 0
-                duetime(1) = 0
+                frmTime.Show vbModal
+                If Not frmTime.Cancelled Then
+                    result_table_start = Trim(frmTime.txtStartTime(0))
+                    result_table_end = Trim(frmTime.txtEndTime(0))
+                    
+                    gpsdata_start = Trim(frmTime.txtStartTime(1))
+                    gpsdata_start = Trim(frmTime.txtEndTime(1))
+                    
+                    OverDue = ""
+                    
+                    toolBar.Buttons(BTN_STOP).Enabled = True
+                    toolBar.Buttons(BTN_START).Enabled = False
+                    result_table_timer.Enabled = True
+                    GPSData_timer.Enabled = True
+                    
+                    gpscount = 0
+                    rtcount = 0
+                    
+                    duetime(0) = 0
+                    duetime(1) = 0
+                End If
             End If
         Case BTN_STOP
             toolBar.Buttons(BTN_STOP).Enabled = False
