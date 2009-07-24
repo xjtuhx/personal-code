@@ -1,4 +1,4 @@
-DataRecvFrm = 66, 177, 852, 745, Z, 15, 8, 801, 634, C
+DataRecvFrm = 66, 177, 852, 745, , 15, 8, 801, 634, C
 mod_DataBase = -2, 191, 784, 759, C
 mod_Main = 176, 232, 967, 858, C
 mod_ReadINI = 177, 149, 987, 775, C

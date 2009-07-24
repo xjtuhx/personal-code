@@ -117,7 +117,6 @@ Begin VB.Form DataRecvFrm
          _ExtentX        =   16536
          _ExtentY        =   9340
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   3
          TextRTF         =   $"DataRecvFrm.frx":96F8
       End
@@ -143,7 +142,7 @@ Begin VB.Form DataRecvFrm
          BeginProperty Panel2 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   6
             Alignment       =   1
-            TextSave        =   "2009-7-23"
+            TextSave        =   "2009-7-24"
          EndProperty
          BeginProperty Panel3 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Alignment       =   1
@@ -308,7 +307,7 @@ Private Sub ppp_status_timer_Timer()
     
         statusBar.Panels(1) = line
         
-        If Now - tickcount > 60 * 1000 Then
+        If Now - tickcount > 60000 Then
             line = "截至" & Date & " " & Time & "收到" & str(recordcount) & "条记录"
             AppendInfoLine (line)
             tickcount = Now
@@ -389,6 +388,7 @@ Private Sub Sock_DataArrival(Index As Integer, ByVal bytesTotal As Long)
                     sql = "insert into " & tmpstr(i) & " values (" & Right(line, Len(line) - 1) & ")"
                     glConnA.Execute sql
                     'AppendInfoLine (sql)
+                    line = ""
                     Exit For
                 Else
                     If tmpstr(j) <> "" And tmpstr(j) <> "OVERDUE" Then
@@ -413,7 +413,7 @@ End Sub
 Public Function FindFreeSocket()
     Dim SockCount, i As Integer
     SockCount = UBound(ConnectState)
-    For i = 0 To SockCount
+    For i = Sock.LBound To SockCount
         If ConnectState(i) = FREE Then
             FindFreeSocket = i
             Exit Function
@@ -427,7 +427,6 @@ End Function
 Private Sub Timer1_Timer()
     statusBar.Panels(3).Text = Time
 End Sub
-
 Private Sub toolBar_ButtonClick(ByVal Button As MSComctlLib.Button)
     Select Case Button.Key
         Case BTN_CONNECT
@@ -560,7 +559,7 @@ LoopTag:
         Case BTN_STOP
             Dim SockCount, i As Integer
             SockCount = Sock.UBound
-            For i = 0 To SockCount
+            For i = Sock.LBound To SockCount
                 If Sock(i).State <> sckClosed Then
                     Sock(i).Close
                 End If
