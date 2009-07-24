@@ -29,6 +29,12 @@ Global Const SOCK_CLOSED = "服务器连接已关闭！"
 Global Const SOCK_CONNECTED = "服务器连接已打开！"
 Global Const SOCK_FAILURE = "服务器连接失败！"
 
+Global Const TIME_INFO = "发送时间配置"
+Global Const TIME_START_A = "开始发送时间A"
+Global Const TIME_END_A = "终止发送时间A"
+Global Const TIME_START_B = "开始发送时间B"
+Global Const TIME_END_B = "终止发送时间B"
+
 Global Const BTN_CONNECT = "连接服务器"
 Global Const BTN_DISCONN = "断开服务器"
 Global Const BTN_START = "开始传输"
